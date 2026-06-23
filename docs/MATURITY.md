@@ -38,6 +38,15 @@ every layer — including voice and onboarding.
 | `ERPCatalogIndex` (Supabase-backed) | **STUB** | Raises `NotImplementedError` by design — superseded by the harness adapter path. |
 | P21 / Eclipse ERP classes | **STUB** | Documented `unsupported` (no instance access); named, not silently missing. |
 
+**Staged, not wired (named, not hidden).** `src/pilot` (shadow capture + the
+labeling boundary) and `src/learning` (the eval battery) are built and
+unit-tested (`tests/test_pilot_labeling.py`, `tests/test_pilot_shadow.py`) but
+are **not yet wired into the live resolution/gateway path** — they are
+infrastructure for the next-gen learning loop (`docs/RESOLUTION_LEARNING_LOOP.md`).
+The orchestrator already emits the per-turn decision point they consume; the
+capture/promotion pipeline on top is the next piece. Staged with intent, not
+dead code.
+
 ---
 
 ## Test posture

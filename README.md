@@ -212,3 +212,7 @@ speech-to-text / text-to-speech / Twilio) are wired behind interfaces and have
 live smoke tests, but those tests are **skipped by default** because they
 require real API credentials. [`docs/MATURITY.md`](docs/MATURITY.md) gives the
 accurate per-capability map of what is fully tested vs. credential-gated vs. stub.
+
+## License
+
+Apache-2.0 — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).

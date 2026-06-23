@@ -178,6 +178,11 @@ def translate(
     result = TranslationResult(
         state=PENDING_DISAMBIGUATION, spec=spec, raw_input=raw)
 
+    # Every _resolve_* shares one signature (result, spec, raw, catalog, memory,
+    # customer) so this dispatch can call them uniformly; some ignore params they
+    # don't need (e.g. _resolve_parser uses neither raw nor memory). The uniform
+    # protocol is deliberate — it keeps the priority order a readable table here
+    # rather than a chain of bespoke call sites.
     for path in (_resolve_parser, _resolve_construct, _resolve_fuzzy,
                  _resolve_memory):
         hit = path(result, spec, raw, catalog, memory, customer)

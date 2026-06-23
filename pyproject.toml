@@ -7,6 +7,7 @@ name = "sku-translator"
 version = "1.0.0"
 description = "Deterministic SKU resolution engine: translates free-form human input into verified canonical catalog part numbers. Rules own canonical output; no model calls in the hot path."
 requires-python = ">=3.10"
+license = "Apache-2.0"
 dependencies = [
     "openpyxl>=3.1",
     "rank-bm25>=0.2",
