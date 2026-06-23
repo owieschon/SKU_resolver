@@ -1,124 +1,20 @@
-"""Industrial part-number parser (v3.5).
-
-Decodes canonical SKUs into structured fields. The translator's extractor
-uses this for full-SKU pass-through; the constructor uses the same grammar
-in reverse. The two together must satisfy the round-trip property:
-
-    parse(construct(extract(sku))) == sku    for any catalog SKU.
-
-v3.5 changes from v3.4:
-    - Elbow regex: finish accepts S3/S4/S4S; angle list expanded to all
-      multiples of 5 from 5° to 180° plus 96°; decimal legs (17.02) handled;
-      diameter no longer greedy.
-    - custom_review pattern tolerates trailing "REV A" / "REV. B".
-    - Pattern definitions reordered for correct precedence on edge cases.
-
-The parser is intentionally permissive about what it returns. Each pattern
-emits a dict with whatever fields it could extract; the extractor maps these
-into PartSpec attributes. Patterns that can't decode return None.
-
-File layout (large by design — a hand-authored grammar of ~300 patterns;
-search these section banners to navigate):
-
-    Lookup tables          family / finish / OEM meaning dictionaries
-    Pattern registry       PAT_* compiled regexes, grouped by family
-    Decoder helpers        _decode_* functions, one per pattern
-    Catch-all / Phase 4 /  long-tail family patterns added during catalog
-      Final / Long-tail      validation (PAT_* + its _decode_* kept together)
-    Pattern dispatch       PATTERNS = ordered [(name, regex, decoder)]; order
-                           is precedence
-    Public API             parse() — the only entry point
-
-Note: a couple of decoders recursively call the dispatch (_try_patterns) to
-classify a parent/inner SKU, so the registry, decoders, and dispatch are one
-coupled unit; splitting the file into a package is tracked as a follow-up.
-"""
+"""The grammar: every compiled pattern (PAT_*), its decoder (_decode_*), and
+the ordered PATTERNS dispatch list. ~300 patterns, hand-authored. Two decoders
+recursively re-enter the dispatch to classify a parent/inner SKU; they import
+_try_patterns lazily to avoid an import cycle with _dispatch."""
 from __future__ import annotations
 
 import re
 from typing import Any
 
-# ============================================================================
-# Lookup tables
-# ============================================================================
-
-FAMILY_MEANINGS = {
-    'K':   'Curved-top stack',
-    'BH':  'Bullhorn stack',
-    'BR':  'Brute stack',
-    'A':   'Aussie-style stack',
-    'WCK': 'West Coast Curve stack',
-    'SS':  'Straight stack',
-    'SP':  'Spool / mitre',
-    'SK':  'Curved variant (chrome)',
-    'S':   'Straight tube / raw stock',
-    'M':   'Muffler',
-    'ZP':  'Modern pipe series',
-    'ZM':  'Modern muffler series',
-    'D':   'Dump stack',
-    'L':   'Elbow',
-    'P':   'Pipe',
-    'R':   'Reducer',
-    'CM':  'Chrome Muffler',
-    'PG':  'Pipe Guard',
-    'MG':  'Muffler Guard',
-    'AHS': 'Aerodynamic Heat Shield',
-    'UHS': 'Universal Heat Shield',
-    'SMB': 'Stainless Mounting Bracket',
-    'DSS': 'Durable Stainless Steel flex hose',
-    'H':   'Hanger',
-    'PRK': 'Peterbilt Retrofit Kit',
-    'EZ':  'EZ Seal clamp',
-    'GRIEZ': 'EZ Seal clamp',
-    '2K':  '2K bulk-pack tube',
-    '50':  'Custom 50-series',
-    '548': 'Apex Diesel 548 program',
-    '777': 'Apex Diesel 777 series',
-    '888': 'Apex Diesel 888 series',
-    'MARMON': 'Marmon flange/flare',
-    'CBS': 'Freightliner kit (CBS)',
-}
-
-FINISH_MEANINGS = {
-    'A':   'Aluminized',
-    'C':   'Chrome',
-    'P':   'At Plater (WIP)',
-    'S':   'Stainless / black',
-    'S3':  '304 stainless steel',
-    'S4':  '409 stainless steel',
-    'S4S': '409 stainless steel (modifier S)',
-    'BS':  'Black Series',
-    'R':   'Raw / Cold-rolled',
-}
-
-BODY_MEANINGS = {
-    'SB': 'Straight Bottom (OD-fit)',
-    'EX': 'Expanded (ID-fit)',
-    'XB': 'Variant',
-}
-
-OEM_MEANINGS = {
-    'KW': 'Kenworth', 'PB': 'Peterbilt', 'FL': 'Freightliner',
-    'IH': 'International', 'MK': 'Mack', 'VG': 'Volvo',
-    'WS': 'Western Star', 'FT': 'Ford Truck', 'GM': 'General Motors',
-    'PETE': 'Peterbilt',
-}
-
-PARAMETRIC_FAMILIES = {
-    'K', 'BH', 'BR', 'A', 'WCK', 'D', 'CSP', 'BT', 'DTS', 'EXS',
-    'S', 'M', 'ZP', 'ZM', 'T', 'CP', 'CN', 'Y', 'SL', 'P',
-    # Note: SS, SK, SP, SBR, SBH, SA, SWCK are NOT atomic. They're
-    # S-prefix reducer + base family. See PAT_S_REDUCER below.
-}
-
-# Base families that can appear with S-prefix as a reducer.
-# Catalog confirms: SA (68), SBH (58), SBR (54), SK (128), SS (84),
-# SP (142), SL (35), SWCK (41) — all describe the part as reduced.
-S_REDUCIBLE_FAMILIES = ['SWCK', 'WCK', 'BH', 'BR', 'K', 'A', 'D', 'M', 'P',
-                        'ZP', 'ZM', 'L', 'S']
-# Sort longest-first for greedy regex matching (SWCK before WCK before K)
-S_REDUCIBLE_FAMILIES.sort(key=len, reverse=True)
-
+from .tables import (
+    BODY_MEANINGS,
+    FAMILY_MEANINGS,
+    FINISH_MEANINGS,
+    OEM_MEANINGS,
+    PARAMETRIC_FAMILIES,
+    S_REDUCIBLE_FAMILIES,
+)
 
 # ============================================================================
 # Pattern registry
@@ -686,6 +582,7 @@ def _decode_reducer(m: re.Match) -> dict[str, Any]:
 
 def _decode_2nd(m: re.Match) -> dict[str, Any] | None:
     inner = m.group('inner')
+    from ._dispatch import _try_patterns  # lazy: breaks the decoder/dispatch cycle
     inner_result = _try_patterns(inner)
     if inner_result is None:
         return None
@@ -1044,6 +941,7 @@ def _decode_marmon_l_length(m: re.Match) -> dict[str, Any]:
 
 def _decode_sw_riverton(m: re.Match) -> dict[str, Any]:
     inner = m.group('inner')
+    from ._dispatch import _try_patterns  # lazy: breaks the decoder/dispatch cycle
     inner_result = _try_patterns(inner)
     result: dict[str, Any] = {
         'pattern': 'sw_riverton',
@@ -6038,70 +5936,3 @@ PATTERNS = [
     ('numeric_long_legacy', PAT_NUMERIC_LONG_LEGACY, _decode_numeric_long_legacy),
     ('pure_numeric', PAT_PURE_NUMERIC, _decode_pure_numeric),
 ]
-
-
-def _try_patterns(sku: str) -> dict[str, Any] | None:
-    """Try each pattern in order. Return the first match's decoded dict.
-
-    Three special non-regex checks run first:
-      1. EXPLICIT_DISREGARD_REVIEW — hardcoded one-off SKUs
-      2. FREETEXT_PREFIXES — non-product line items (PA-, RESTOCK-, etc.)
-      3. NPI/test SKUs
-    """
-    # 1. Explicit disregard list
-    if sku in EXPLICIT_DISREGARD_REVIEW:
-        return {
-            'pattern': 'explicit_disregard',
-            'family': 'DISREGARD',
-            'family_meaning': 'Explicit disregard (per SME)',
-            'disregard': True,
-            'requires_human_review': True,
-            'disregard_reason': EXPLICIT_DISREGARD_REVIEW[sku],
-        }
-
-    # 2. Freetext / admin prefixes (non-product line items)
-    sku_upper = sku.upper()
-    for prefix in FREETEXT_PREFIXES:
-        if sku_upper.startswith(prefix):
-            return {
-                'pattern': 'freetext_or_admin',
-                'family': 'ADMIN',
-                'family_meaning': 'Non-product line item',
-                'disregard': True,
-                'admin_prefix': prefix.strip(),
-            }
-
-    # 3. Regex pattern dispatch
-    for name, regex, decoder in PATTERNS:
-        if regex is None or decoder is None:
-            continue  # placeholder entries
-        m = regex.match(sku)
-        if m:
-            result = decoder(m)
-            if result is not None:
-                return result
-    return None
-
-
-# ============================================================================
-# Public API
-# ============================================================================
-
-def parse(sku: str) -> dict[str, Any]:
-    """Decode a a catalog SKU string into a structured dict.
-
-    Always returns a dict. Unrecognized inputs get pattern='unstructured'.
-    """
-    if not sku or not isinstance(sku, str):
-        return {'part_number': sku, 'pattern': 'empty'}
-
-    sku = sku.strip().upper()
-    if not sku:
-        return {'part_number': sku, 'pattern': 'empty'}
-
-    result = _try_patterns(sku)
-    if result is None:
-        return {'part_number': sku, 'pattern': 'unstructured'}
-
-    result['part_number'] = sku
-    return result
