@@ -42,8 +42,9 @@ every layer — including voice and onboarding.
 
 ## Test posture
 
-- **~300 tests**, green in CI on Python 3.12 (`pip install -e ".[dev]"`).
-- **87% line coverage** (`pytest --cov=src`). The remainder is concentrated in
+- **579 passing / 10 skipped** on a clean `pip install -e ".[dev]"` clone (the
+  skips are the credential-gated live-API smokes), green in CI on Python 3.12.
+- **85% line coverage** (`pytest --cov=src`). The remainder is concentrated in
   the **GATED** modules' live I/O — the real WebSocket/SDK/socket calls that
   cannot run in CI. For each, the decision/parsing logic is extracted into a
   pure function that **is** covered (`parse_turn_message`,

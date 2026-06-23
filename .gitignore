@@ -19,3 +19,8 @@ _handoff/
 # Real/source catalog data must never be committed (only synthetic data/catalog.csv ships)
 data/*.xlsx
 data/.sku_map.json
+
+# coverage artifacts
+.coverage
+coverage.xml
+htmlcov/

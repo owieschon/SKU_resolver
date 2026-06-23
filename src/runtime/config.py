@@ -100,6 +100,12 @@ def build_gateway():
     else:
         pricebook = SyntheticPriceBook.seeded(catalog.all_skus())
 
+    if using_dev_secret():
+        import warnings
+        warnings.warn(
+            'SKU_SESSION_SECRET is unset; signing sessions with an insecure dev '
+            'key. Set SKU_SESSION_SECRET before any real deployment.',
+            RuntimeWarning, stacklevel=2)
     secret = os.environ.get('SKU_SESSION_SECRET', 'dev-insecure-secret').encode()
     import time
     sessions = SessionManager(secret=secret, customer_db=customer_db,
