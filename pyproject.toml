@@ -97,6 +97,8 @@ ignore = ["E501"]
 "analytics/run.py" = ["E402"]
 "tests/test_catalog_source.py" = ["E402"]
 "tests/test_ship_date_property.py" = ["E402"]
+"tests/test_resolution_noise_resilience.py" = ["E402"]
+"scripts/noise_resilience_audit.py" = ["E402"]
 # Tests favour compact one-line setup (a; b) and the occasional lambda — style
 # rules relaxed there; correctness rules (F-series) still apply.
 "tests/*" = ["E701", "E702", "E731"]

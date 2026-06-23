@@ -91,7 +91,9 @@ in this repo — clone it and reproduce them yourself.
 > read it as "the engine and its guarantees run end-to-end on a realistic
 > catalog," not as a benchmark. The grammar's harder validation was on a real
 > ~10k-SKU catalog held privately under NDA; those results aren't reproducible
-> from this repo.
+> from this repo. Behaviour on *noisy* input is measured separately and does not
+> rely on construction — see [`docs/NOISE_RESILIENCE_AUDIT.md`](docs/NOISE_RESILIENCE_AUDIT.md)
+> (typo / OCR / partial input → **0 inventions**, graceful degradation).
 
 | Property | How it's checked | Result |
 |---|---|---|
@@ -100,6 +102,7 @@ in this repo — clone it and reproduce them yourself.
 | Grammar invertibility | `construct(extract(sku)) == sku` coverage | **96.96%** (floor 95%) |
 | Never-invent, under attack | seeded mutation fuzz + injection/unicode corpus: no resolved SKU outside the catalog | `tests/test_resolution_adversarial.py` |
 | Tenant isolation | two services, disjoint catalogs, attacked both directions | same file |
+| Never-invent under noise | typo / OCR / partial-spec perturbations of real SKUs, resolved through the live service | **0 inventions**, ~77% graceful degradation — `scripts/noise_resilience_audit.py` |
 | `ship_date()` is total & pure | property sweep over the full catalog × boundary timestamps; AST check that the fulfillment closure imports no LLM/network | `tests/test_ship_date_golden.py`, `tests/test_fulfillment_purity.py` |
 | Pricing stays gated | injection / enumeration / cross-account / weak-confirmation probes | `tests/test_gateway_adversarial.py` |
 

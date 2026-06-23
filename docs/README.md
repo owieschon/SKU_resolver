@@ -43,6 +43,9 @@ tenant isolation) and `tests/test_gateway_adversarial.py`.
   off-by-default, fail-open, PII-scrubbed.
 
 ## Verification
+- [NOISE_RESILIENCE_AUDIT.md](NOISE_RESILIENCE_AUDIT.md) — how the engine behaves
+  on noisy input (typo / OCR / partial specs): it never invents and degrades
+  gracefully. The complement to the round-trip audit's "high by construction".
 - [PRODUCTION_VALIDATION_GATE.md](PRODUCTION_VALIDATION_GATE.md) — the boundary
   between what synthetic tests can prove and what only a real ERP / real audio /
   real customer DB can confirm.

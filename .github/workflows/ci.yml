@@ -30,6 +30,9 @@ jobs:
       - name: Round-trip audit (identity + no-new-silent-rewrites + coverage floor)
         run: python scripts/roundtrip_audit.py
 
+      - name: Noise-resilience audit (never-invent under typo/OCR/partial input)
+        run: python scripts/noise_resilience_audit.py
+
       - name: Readiness gate (ready=false fails the build)
         run: python scripts/readiness.py
 
@@ -41,3 +44,4 @@ jobs:
           path: |
             state/readiness.json
             state/roundtrip_audit.json
+            state/noise_resilience_audit.json
