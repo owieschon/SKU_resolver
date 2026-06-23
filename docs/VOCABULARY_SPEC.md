@@ -82,7 +82,7 @@ Note for agent: Sample SKUs show RB descriptions include both "ROUND BOLT" and "
 'school bus stack':     {'code': 'SB',  'category': 'oem_truck', 'name': 'School Bus stack'},
 ```
 
-**Critical disambiguation:** SB at the start of an Item Number means School Bus family. SB between digits (e.g., K5-24SBC) means Straight Bottom body code. The parser already handles position-based disambiguation correctly (line 1230 of part_number_parser.py for School Bus regex, lines 537-544 for SB body code aliases). Do not modify the existing body-code handling.
+**Critical disambiguation:** SB at the start of an Item Number means School Bus family. SB between digits (e.g., K5-24SBC) means Straight Bottom body code. The parser already handles position-based disambiguation correctly (the School Bus regex and SB body-code aliases in part_number_parser/_patterns.py). Do not modify the existing body-code handling.
 
 ### VB - V-Band clamp
 
@@ -566,7 +566,7 @@ The audit also surfaced disambiguation rules the agent should implement:
 
 ### Position-based code resolution (already implemented)
 
-- `SB` at SKU start = School Bus family (handled in part_number_parser.py line 1230+)
+- `SB` at SKU start = School Bus family (handled in part_number_parser/_patterns.py)
 - `SB` between digits = Straight Bottom body code (handled in BODY_ALIASES)
 - No agent action needed; verify continues to work after vocabulary additions.
 
@@ -624,7 +624,7 @@ The agent should implement everything above and leave the flagged items for a fo
 
 3. **Test each addition against the existing test suite first.** A breaking change in vocabulary recognition could cascade. Run `test_integration.py` after each family's additions.
 
-4. **Do not modify part_number_parser.py family code definitions.** The parser already knows these codes. The vocabulary layer just teaches the system to recognize rep phrasing.
+4. **Do not modify part_number_parser/_patterns.py family code definitions.** The parser already knows these codes. The vocabulary layer just teaches the system to recognize rep phrasing.
 
 5. **For families flagged as needing the SME's input, add a TODO comment with the family code rather than guessing.**
 

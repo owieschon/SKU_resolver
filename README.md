@@ -133,7 +133,7 @@ print(result.sku, result.source, result.confidence)
 
 | Path | What's there |
 |---|---|
-| `src/sku_translator/part_number_parser.py` | The grammar: 312 compiled patterns decoding canonical SKUs into structured fields |
+| `src/sku_translator/part_number_parser/` | The grammar package: 312 compiled patterns + decoders (`_patterns.py`), dispatch + `parse()` (`_dispatch.py`), lookup tables (`tables.py`) |
 | `src/sku_translator/normalizer.py` | Free-text / voice front-end: NATO-phonetic decoding, spoken fractions, units, family vocabulary |
 | `src/sku_translator/translator.py` | Orchestrator: one `translate()` entry, confidence-graded resolution paths |
 | `src/sku_translator/extractor.py` · `constructor.py` | tokens → spec → canonical SKU (invertible with the parser) |

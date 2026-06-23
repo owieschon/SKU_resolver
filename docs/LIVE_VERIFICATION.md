@@ -1,9 +1,14 @@
-# Live Verification — integrations proven against real services
+# Live Verification — integrations checked against real services
 
 The credential-gated smokes (never part of CI) were run against the real
 backends on 2026-06-07. This is the record of what ran, what passed, and the
-real bugs the run caught — the proof that the integration code is not just
-"tested against my own assumption of the API."
+real bugs the run caught — evidence the integration code isn't just "tested
+against my own assumption of the API."
+
+> **Reproducibility note.** This is a self-report from development: the raw run
+> logs are not committed to this repo. The smokes themselves *are* here
+> (`tests/test_live_*.py`, skipped by default) — set the provider credentials
+> and run them to reproduce these results with your own keys.
 
 ## What was run (all passed)
 

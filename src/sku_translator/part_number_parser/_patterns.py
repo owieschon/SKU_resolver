@@ -1,5 +1,5 @@
 """The grammar: every compiled pattern (PAT_*), its decoder (_decode_*), and
-the ordered PATTERNS dispatch list. ~300 patterns, hand-authored. Two decoders
+the ordered PATTERNS dispatch list. 312 patterns, hand-authored. Two decoders
 recursively re-enter the dispatch to classify a parent/inner SKU; they import
 _try_patterns lazily to avoid an import cycle with _dispatch."""
 from __future__ import annotations

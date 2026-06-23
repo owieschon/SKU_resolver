@@ -61,9 +61,11 @@ every layer — including voice and onboarding.
 
 ---
 
-## Live-verified (2026-06-07) — proven against real services, not just stand-ins
+## Live-verified (2026-06-07) — checked against real services, not just stand-ins
 
-The credential-gated smokes were run against real backends. All pass; the run
+Self-reported from development (run logs not in this repo; reproduce with your
+own keys — see `docs/LIVE_VERIFICATION.md`). The credential-gated smokes were
+run against real backends. All pass; the run
 caught and fixed four real integration bugs (missing provider SDK extra;
 TLS `CERTIFICATE_VERIFY_FAILED` on the streaming ASR and all urllib adapters,
 fixed with a certifi CA bundle; AssemblyAI `keyterms_prompt` needing a JSON
