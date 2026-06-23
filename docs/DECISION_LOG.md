@@ -1087,5 +1087,5 @@ work sample was extracted from that codebase; the decisions made during extracti
   protocol, the fault-injection plan, the adversarial live-results log) that are
   not included in this work sample.
 
-**Status (this repo):** full suite **587 passed, 10 skipped** on a clean
+**Status (this repo):** full suite **593 passed, 10 skipped** on a clean
 `pip install -e ".[dev]"` clone; ruff + mypy green; round-trip 9,487/9,487.

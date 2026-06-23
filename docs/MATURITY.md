@@ -51,7 +51,7 @@ dead code.
 
 ## Test posture
 
-- **587 passing / 10 skipped** on a clean `pip install -e ".[dev]"` clone (the
+- **593 passing / 10 skipped** on a clean `pip install -e ".[dev]"` clone (the
   skips are the credential-gated live-API smokes), green in CI on Python 3.12.
 - **85% line coverage** (`pytest --cov=src`). The remainder is concentrated in
   the **GATED** modules' live I/O — the real WebSocket/SDK/socket calls that
