@@ -401,7 +401,8 @@ class ShadowCampaign:
 
     def window_open(self, elapsed_days: float) -> bool:
         """Whether the observation window is still open after `elapsed_days`."""
-        return self.continuous or elapsed_days < self.window_days
+        return self.continuous or (
+            self.window_days is not None and elapsed_days < self.window_days)
 
     def observe_call(self, turns, *, heal: bool = False,
                      autonomous: bool = False) -> list[ShadowAttempt]:

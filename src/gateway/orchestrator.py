@@ -17,7 +17,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from sku_translator import CatalogIndex
 
 from gateway import escalation
 from gateway.answers import (
@@ -59,14 +64,14 @@ _ACCT_NO_RE = re.compile(r'\b(?:account|acct)\s*(?:no\.?|number|#)?\s*[:#]?\s*'
 @dataclass
 class Gateway:
     service: ResolutionService
-    catalog: object                  # CatalogIndex
+    catalog: CatalogIndex
     inventory: dict
     catalog_version: str
     sessions: SessionManager
     journal: ConversationJournal
     pricebook: PriceBook
     account_tier_of: Callable[[str], str]
-    now_fn: Callable[[], object]     # returns a tz-aware datetime for ship dates
+    now_fn: Callable[[], datetime]    # tz-aware datetime for ship dates
     # P2 seam: intent classifier. Default rule-based (deterministic); inject an
     # LLMIntentRouter for production language understanding. Either way the
     # gates below still bind.
@@ -177,7 +182,7 @@ class Gateway:
         return TurnResponse(
             kind='escalate',
             text="Let me connect you with someone who can help with that.",
-            session_state=session_state, refused='internal_error')
+            session_state=session_state or '', refused='internal_error')
 
     # -- orchestration-backed turn (CONVERSATION_STATE_SPEC) -------------------
 
@@ -466,22 +471,23 @@ class Gateway:
                                           channel, confirm_first=True)
         outcome = identify(text, channel=channel, service=self.service,
                            catalog=self.catalog)
-        if outcome.state == 'identified':
-            sku = outcome.identified.sku
+        identified = outcome.identified  # state implies non-None; guard narrows it
+        if outcome.state == 'identified' and identified is not None:
+            sku = identified.sku
             self.sessions.remember_sku(session_id, token, sku)
             self._fail_count.pop(session_id, None)            # success resets
             self.journal.record(EventType.IDENTIFY, session_id, sku=sku,
-                                confirmed=True, source=outcome.identified.source)
+                                confirmed=True, source=identified.source)
             return self._availability_answer(session_id, token, sku)
-        if outcome.state == 'needs_confirmation':
-            self._pending_sku[session_id] = outcome.identified.sku
+        if outcome.state == 'needs_confirmation' and identified is not None:
+            self._pending_sku[session_id] = identified.sku
             self.journal.record(EventType.IDENTIFY, session_id,
-                                sku=outcome.identified.sku, confirmed=False)
+                                sku=identified.sku, confirmed=False)
             return TurnResponse(
-                kind='identify', text=outcome.readback,
+                kind='identify', text=outcome.readback or '',
                 session_state=self.sessions.state_of(session_id, token).value,
                 needs_confirmation=True,
-                meta={'surfaced_sku': outcome.identified.sku})
+                meta={'surfaced_sku': identified.sku})
         if outcome.state == 'candidates':
             # A candidate list is progress, but a caller who keeps landing
             # here without converging should be handed off — count it as a
@@ -620,7 +626,7 @@ class Gateway:
         if sku is None and _has_sku_shape(text):
             outcome = identify(text, channel=channel, service=self.service,
                                catalog=self.catalog)
-            if outcome.state == 'identified':
+            if outcome.state == 'identified' and outcome.identified is not None:
                 sku = outcome.identified.sku
             else:
                 # a named-but-ambiguous part -> disambiguate via availability

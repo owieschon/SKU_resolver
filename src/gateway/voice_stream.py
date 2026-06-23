@@ -24,7 +24,7 @@ import struct
 from dataclasses import dataclass
 
 _BIAS = 0x84
-_MULAW_TABLE = []   # built once below: mu-law byte -> signed 16-bit PCM
+_MULAW_TABLE: list[int] = []   # built once below: mu-law byte -> signed 16-bit PCM
 
 
 def _build_mulaw_table() -> None:

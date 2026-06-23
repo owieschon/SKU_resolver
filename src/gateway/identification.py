@@ -50,7 +50,7 @@ def _readback_for(resolution: Resolution, catalog) -> str:
     spoken = spoken_description(row)
     if spoken:
         return f"I have {sku} — that's {spoken}. Is that the one?"
-    desc = to_spoken((row.description if row else '') or sku)
+    desc = to_spoken((row.description if row else '') or sku or '')
     return f"I have {sku} — {desc}. Is that the one?"
 
 
@@ -58,7 +58,7 @@ def identify(text: str, *, channel: Channel, service: ResolutionService,
              catalog, customer: str | None = None) -> IdentificationOutcome:
     res = service.resolve(text, customer=customer)
 
-    if res.state == 'resolved':
+    if res.state == 'resolved' and res.sku is not None:
         if channel is Channel.TYPED and res.confidence == 'high':
             return IdentificationOutcome(
                 'identified',
