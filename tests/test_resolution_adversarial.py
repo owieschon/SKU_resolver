@@ -197,3 +197,25 @@ def test_memory_does_not_leak_across_tenant_services():
     res_b = svc_b.resolve('bottle thing', customer='ACME')
     assert res_b.sku != 'GR-WATER BOTTLE'
     assert all(c.sku != 'GR-WATER BOTTLE' for c in res_b.candidates)
+
+
+def test_memory_replay_is_scoped_to_customer():
+    """Isolation proven at the memory layer, not just via never-invent: a
+    dominant choice recorded for one customer replays for THAT customer and is
+    REFUSED for a different one, because the lookup key is (signature, customer).
+    Uses a real catalog SKU so the positive arm can't be masked by never-invent."""
+    from sku_translator import InMemoryStore, consult_memory, record_choice
+    from sku_translator.extractor import extract_spec
+
+    store = InMemoryStore()
+    spec = extract_spec('K 5 chrome SB')          # partial -> resolvable only via replay
+    for _ in range(3):
+        record_choice(spec, 'K5-24SBC', store, customer='ACME')
+
+    same = consult_memory(spec, store, customer='ACME')
+    assert same.replay and same.chosen_sku == 'K5-24SBC'   # A's signal is real...
+
+    other = consult_memory(spec, store, customer='OTHER')
+    assert not other.replay                                # ...and does NOT cross to B
+    none_cust = consult_memory(spec, store, customer=None)
+    assert not none_cust.replay                            # nor leak to the unscoped path

@@ -41,6 +41,7 @@ class AlertRouter:
     def _post_webhook(self, row: dict) -> None:
         try:                                  # lazy import: no net stack at import
             import urllib.request
+            assert self.webhook_url is not None
             req = urllib.request.Request(
                 self.webhook_url, data=json.dumps(row).encode(),
                 headers={'Content-Type': 'application/json'})

@@ -1,7 +1,21 @@
 """The grammar: every compiled pattern (PAT_*), its decoder (_decode_*), and
 the ordered PATTERNS dispatch list. 312 patterns, hand-authored. Two decoders
 recursively re-enter the dispatch to classify a parent/inner SKU; they import
-_try_patterns lazily to avoid an import cycle with _dispatch."""
+_try_patterns lazily to avoid an import cycle with _dispatch.
+
+This file is large by design (a hand-authored grammar). To navigate, search for
+these section banners:
+
+    Pattern registry        core PAT_* regexes
+    Decoder helpers         _decode_* for the core patterns
+    Catch-all patterns      high-volume families added after catalog validation
+    Phase 4 expansion       long-tail family-specific patterns
+    Final coverage batch    long-tail clusters
+    Long-tail final         the remaining tail
+    Pattern dispatch        PATTERNS = ordered [(name, regex, decoder)]
+
+Each family keeps its PAT_* and _decode_* together; PATTERNS at the end fixes
+precedence (earlier entries win)."""
 from __future__ import annotations
 
 import re

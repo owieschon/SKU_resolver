@@ -101,14 +101,19 @@ ignore = ["E501"]
 # rules relaxed there; correctness rules (F-series) still apply.
 "tests/*" = ["E701", "E702", "E731"]
 
-# Static type-checking is gated on the deterministic core — the part of the
-# system where a type error is a correctness risk. The provider/runtime edges
-# (web stack, optional SDKs) are out of scope here.
 [tool.mypy]
-files = ["src/sku_translator", "src/fulfillment", "src/resolution"]
+# Type-gate the correctness-critical packages: the resolution core, fulfillment,
+# the chooser/retrieval service, the model-provider seam, and observability.
+# Excluded (checked incrementally): the gateway (deliberate no-asserts posture —
+# asserts vanish under `python -O` — makes Optional-narrowing awkward), the
+# FastAPI runtime (web-stack edge), and erp_harness (dynamic ERP-shape dicts).
+files = [
+    "src/sku_translator", "src/fulfillment", "src/resolution",
+    "src/model_provider", "src/observability",
+]
 python_version = "3.10"
-# Gate only the listed core packages; don't report errors in their dependencies
-# (the provider/runtime edges and third-party SDKs are out of scope here).
+# Don't report errors in dependencies outside the listed packages (third-party
+# SDKs, the runtime edge).
 follow_imports = "silent"
 ignore_missing_imports = true
 warn_unused_ignores = true

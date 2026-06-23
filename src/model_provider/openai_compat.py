@@ -61,7 +61,7 @@ class _OpenAICompatProvider:
                 'type': 'json_schema',
                 'json_schema': {'name': req.task, 'schema': req.json_schema}}
         try:
-            resp = client.chat.completions.create(**kwargs)
+            resp = client.chat.completions.create(**kwargs)  # type: ignore[call-overload]  # kwargs built dynamically
         except Exception as e:
             raise ModelUnavailable(f'{self.name} call failed: {e}') from e
 
