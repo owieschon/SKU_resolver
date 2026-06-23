@@ -20,7 +20,10 @@ import urllib.request
 from urllib.parse import urlencode
 
 from erp_harness.transport import (
-    Backend, Clock, TransportRequest, TransportResponse, TransportTimeout,
+    Clock,
+    TransportRequest,
+    TransportResponse,
+    TransportTimeout,
 )
 
 _READ_ALLOWED = {'GET', 'HEAD'}

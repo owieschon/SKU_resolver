@@ -31,12 +31,11 @@ PERMANENT HARNESS INVARIANTS (not patches — rules):
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-
-import hashlib
 
 EVAL_DIR = Path(__file__).resolve().parents[2] / 'voice_agent' / 'eval'
 SPLITS = ('dev', 'frozen_visible', 'frozen_holdout', 'reserve')

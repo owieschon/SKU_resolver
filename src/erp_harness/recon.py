@@ -11,7 +11,11 @@ table is data, not branching logic — adding an ERP class is a table entry.
 from __future__ import annotations
 
 from erp_harness.models import (
-    ERPClass, ERPDescriptor, Grant, InvariantViolation, PermissionsManifest,
+    ERPClass,
+    ERPDescriptor,
+    Grant,
+    InvariantViolation,
+    PermissionsManifest,
     UnsupportedERPError,
 )
 

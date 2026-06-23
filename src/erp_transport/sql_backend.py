@@ -21,7 +21,9 @@ import re
 from xml.sax.saxutils import escape
 
 from erp_harness.transport import (
-    Backend, TransportRequest, TransportResponse, TransportTimeout,
+    TransportRequest,
+    TransportResponse,
+    TransportTimeout,
 )
 
 _IDENT = re.compile(r'^[A-Za-z0-9_]+$')   # SQL identifier allowlist (anti-injection)
@@ -130,7 +132,7 @@ class SqlBackend:
                     query_timeout_s: int = 30, **kw) -> 'SqlBackend':
         """Wire a real read-only pyodbc connection (gated; needs the [erp]
         extra). Sets a query timeout that surfaces as TransportTimeout."""
-        import pyodbc   # pragma: no cover - live only
+        import pyodbc  # pragma: no cover - live only
 
         conn = pyodbc.connect(connection_string, readonly=True,
                               timeout=query_timeout_s)

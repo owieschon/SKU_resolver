@@ -3,12 +3,16 @@ the degraded-transcript -> readback (never silent ID) behavior end-to-end.
 """
 from __future__ import annotations
 
+from gateway_fixtures import build_gateway
+
 from gateway import (
-    Channel, SimulatedASR, Transcript, keyterms_from_catalog,
+    Channel,
+    SimulatedASR,
+    Transcript,
+    keyterms_from_catalog,
     transcript_is_usable,
 )
 from gateway.voice import CONFIDENCE_FLOOR
-from gateway_fixtures import build_gateway
 
 
 def test_simulated_asr_is_deterministic():

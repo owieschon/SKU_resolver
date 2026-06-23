@@ -9,10 +9,9 @@ Spec: docs/ERP_ADAPTER_HARNESS_SPEC.md (components C1, C3, C6, C7, C8).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Mapping
-
 
 # --- C1: recon ---------------------------------------------------------------
 

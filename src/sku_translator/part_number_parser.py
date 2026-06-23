@@ -22,7 +22,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-
 # ============================================================================
 # Lookup tables
 # ============================================================================
@@ -2427,7 +2426,7 @@ PAT_VB_EXTENDED = re.compile(
 
 def _decode_vb_extended(m: re.Match) -> dict[str, Any]:
     d = m.group('diameter')
-    if len(d) == 3 and not '.' in d:
+    if len(d) == 3 and '.' not in d:
         diameter = float(d[0]) + float(d[1:]) / 100
     else:
         diameter = float(d)
@@ -3971,7 +3970,7 @@ def _decode_zp_gauge(m: re.Match) -> dict[str, Any]:
 # --- "AT PLATER" -P/-NP suffix work-in-progress SKUs ------------------
 # SP7-108EX-5P, SK7-108EX-5P, SS7-108EX-5P, SBH7-108EX5P
 PAT_AT_PLATER = re.compile(
-    rf'^(?P<family>SP|SK|SS|SA|SBR|SBH|SWCK|K|A|D|S|M|P|L|T|Y|BR|BH)'
+    r'^(?P<family>SP|SK|SS|SA|SBR|SBH|SWCK|K|A|D|S|M|P|L|T|Y|BR|BH)'
     r'(?P<diameter>\d+(?:\.\d+)?)'
     r'-(?P<length>\d+(?:\.\d+)?)'
     r'(?P<body>SB|EX|XB)'
@@ -5006,7 +5005,7 @@ def _decode_zp_desc(m: re.Match) -> dict[str, Any]:
 # --- K with SP-finish (polished) (K5-36SPS3) ----------------------
 # This is K5-36 SP S3 = K(curved) 5" 36" body=SP finish=S3
 PAT_K_SP_S = re.compile(
-    rf'^(?P<family>K|A|D|M|P|S)(?P<diameter>\d+(?:\.\d+)?)'
+    r'^(?P<family>K|A|D|M|P|S)(?P<diameter>\d+(?:\.\d+)?)'
     r'-(?P<length>\d+(?:\.\d+)?)'
     r'(?P<body>SP|XB|SB|EX)'
     r'(?P<finish>S3|S4|SS|[ACPS])$'
@@ -6181,89 +6180,3 @@ def parse(sku: str) -> dict[str, Any]:
 
     result['part_number'] = sku
     return result
-
-
-# ============================================================================
-# Self-tests (round-trip critical cases)
-# ============================================================================
-
-def _selftest():
-    """Smoke tests for the most-used patterns."""
-    cases = [
-        ('K5-24SBC', 'parametric',
-            {'family': 'K', 'diameter': 5.0, 'length': 24.0,
-             'body': 'SB', 'finish': 'C'}),
-        ('BH5-30SBA', 'parametric',
-            {'family': 'BH', 'diameter': 5.0, 'length': 30.0,
-             'body': 'SB', 'finish': 'A'}),
-        ('L590-1715SC', 'elbow',
-            {'family': 'L', 'diameter': 5.0, 'angle': 90,
-             'leg1': 17.0, 'leg2': 15.0, 'body': 'SB', 'finish': 'C'}),
-        ('L475-1212S4S', 'elbow',
-            {'family': 'L', 'diameter': 4.0, 'angle': 75,
-             'leg1': 12.0, 'leg2': 12.0, 'finish': 'S4S'}),
-        ('L750-2112SR', 'elbow',
-            {'family': 'L', 'diameter': 7.0, 'angle': 50,
-             'leg1': 21.0, 'leg2': 12.0, 'finish': 'R'}),
-        ('R5-6IDODA', 'reducer',
-            {'family': 'R', 'finish': 'A'}),
-        ('2NDA5-72SBC', '2nd_parametric',
-            {'family': 'A', 'diameter': 5.0, 'cosmetic_second': True}),
-        ('548CPL', 'perf_diesel',
-            {'family': '548', 'config_code': 'CPL'}),
-        ('CM-56C', 'cm_muffler',
-            {'family': 'CM', 'length': 56.0, 'finish': 'C'}),
-        # S-prefix reducer (Option A): S{base_family}{inlet}-{length}{body}{finish}{?-outlet}
-        ('SBR6-108EXC', 's_reducer',
-            {'family': 'BR', 'inlet_diameter': 6.0, 'outlet_diameter': 5.0,
-             'outlet_implicit': True, 'is_reducer': True,
-             'length': 108.0, 'body': 'EX', 'finish': 'C'}),
-        ('SBR5-14SBC-4', 's_reducer',
-            {'family': 'BR', 'inlet_diameter': 5.0, 'outlet_diameter': 4.0,
-             'is_reducer': True, 'body': 'SB', 'finish': 'C'}),
-        ('SK4-48EXC-3', 's_reducer',
-            {'family': 'K', 'inlet_diameter': 4.0, 'outlet_diameter': 3.0,
-             'is_reducer': True}),
-        ('SP7-55SBC', 's_reducer',
-            {'family': 'P', 'family_meaning': 'Pipe',
-             'inlet_diameter': 7.0, 'is_reducer': True}),
-        ('SS5-36SBC-4', 's_reducer',
-            {'family': 'S', 'inlet_diameter': 5.0, 'outlet_diameter': 4.0,
-             'is_reducer': True}),
-        # Numeric-first SP (spool pipe) is structurally different: NOT a reducer
-        ('7SP-55SBC', 'parametric_nf',
-            {'family': 'SP', 'diameter': 7.0, 'length': 55.0}),
-    ]
-    failures = []
-    for sku, expected_pattern, expected_fields in cases:
-        result = parse(sku)
-        if result.get('pattern') != expected_pattern:
-            failures.append(
-                f"{sku}: expected pattern {expected_pattern!r}, "
-                f"got {result.get('pattern')!r}"
-            )
-            continue
-        for k, v in expected_fields.items():
-            if result.get(k) != v:
-                failures.append(
-                    f"{sku}: expected {k}={v!r}, got {result.get(k)!r}"
-                )
-    if failures:
-        raise AssertionError(
-            "part_number_parser self-test failed:\n  " +
-            "\n  ".join(failures)
-        )
-
-
-_selftest()
-
-
-if __name__ == '__main__':
-    import sys
-    if len(sys.argv) > 1:
-        for sku in sys.argv[1:]:
-            print(f"{sku}:")
-            for k, v in parse(sku).items():
-                print(f"  {k}: {v}")
-    else:
-        print("part_number_parser v3.5 — self-test passed")

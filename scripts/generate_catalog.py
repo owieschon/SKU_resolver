@@ -29,8 +29,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / 'src'))
 
-from sku_translator.extractor import PartSpec, extract_spec
 from sku_translator.constructor import construct_sku
+from sku_translator.extractor import PartSpec, extract_spec
 from sku_translator.part_number_parser import parse
 
 # Enumeration grids. Generous candidate sets; only combos that round-trip

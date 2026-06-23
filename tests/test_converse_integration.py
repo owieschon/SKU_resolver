@@ -10,11 +10,11 @@ from __future__ import annotations
 
 import json
 
-from gateway import Channel
+from gateway_fixtures import build_gateway
+
 from gateway.provenance import assert_complete, surfaced
 from gateway.say_guard import internal_state_tokens
 from gateway.session import SessionState
-from gateway_fixtures import build_gateway
 from runtime.endpoint_harness import run_turn
 
 

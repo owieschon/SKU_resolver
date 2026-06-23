@@ -8,9 +8,12 @@ persisted transcript is scrubbed).
 from __future__ import annotations
 
 from gateway_fixtures import build_gateway
+
 from pilot.capture import CallTurn, HumanMove, RawCall
 from pilot.shadow import (
-    DivergenceMarker, ingest, replay_with_regrounding, tag_decisions,
+    ingest,
+    replay_with_regrounding,
+    tag_decisions,
 )
 
 

@@ -9,9 +9,10 @@ import hashlib
 import hmac
 import json
 
+from gateway_fixtures import build_gateway
+
 from gateway import Channel, tools_manifest
 from gateway.connector import WebhookConnector, _response_to_dict
-from gateway_fixtures import build_gateway
 
 SECRET = b'webhook-secret'
 

@@ -24,7 +24,7 @@ from pathlib import Path
 import pytest
 
 from model_provider import LLMClient, configured_providers, make_provider
-from model_provider.routing import TIER_MODELS, CHEAP
+from model_provider.routing import CHEAP, TIER_MODELS
 
 REPO = Path(__file__).resolve().parent.parent
 

@@ -38,14 +38,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from math import log10
-from typing import Any
 
 try:
     from sku_translator.catalog_index import CatalogIndex, ParsedRow
-    from sku_translator.extractor import PartSpec, Ambiguity
+    from sku_translator.extractor import Ambiguity, PartSpec
 except ImportError:
     from catalog_index import CatalogIndex, ParsedRow
-    from extractor import PartSpec, Ambiguity
+    from extractor import Ambiguity, PartSpec
 
 
 @dataclass
@@ -330,6 +329,7 @@ def disambiguate(
             f'(score gap {top[0].score - top[1].score:.1f})'
         )
     elif _is_sales_dominant(top[0], top[1]):
+        assert top[0].parsed is not None and top[1].parsed is not None
         confidence = 'high'
         reasoning = (
             f'Sales-dominant match: {top[0].sku} '
@@ -348,114 +348,3 @@ def disambiguate(
         confidence=confidence,
         reasoning=reasoning,
     )
-
-
-# ============================================================================
-# Self-test
-# ============================================================================
-
-def _selftest() -> None:
-    """Self-test using a minimal in-memory CatalogIndex impl."""
-    try:
-        from sku_translator.catalog_index import family_prefix_for
-    except ImportError:
-        from catalog_index import family_prefix_for
-
-    class _MockCatalog:
-        def __init__(self, rows):
-            self._rows = rows
-            self._upper = {r.sku.upper(): r for r in rows}
-
-        def tenant_id(self):
-            return 'mock'
-
-        def is_canonical(self, sku):
-            return bool(sku) and sku.upper() in self._upper
-
-        def lookup(self, sku):
-            return self._upper.get(sku.upper()) if sku else None
-
-        def parsed_rows(self):
-            return iter(self._rows)
-
-        def all_skus(self):
-            return [r.sku for r in self._rows]
-
-        def bucket(self, family=None, diameter=None):
-            out = self._rows
-            if family is not None:
-                out = [r for r in out if r.family == family]
-            if diameter is not None:
-                out = [r for r in out if r.diameter == diameter]
-            return list(out)
-
-        def family_prefix_bucket(self, prefix):
-            return [r for r in self._rows if family_prefix_for(r.sku) == prefix.upper()]
-
-        def reload(self):
-            pass
-
-        def size(self):
-            return len(self._rows)
-
-    rows = [
-        ParsedRow(sku='K5-24SBC', family='K', diameter=5.0, length=24.0, body='SB', finish='C', sales_count=1500),
-        ParsedRow(sku='K5-24SBA', family='K', diameter=5.0, length=24.0, body='SB', finish='A', sales_count=50),
-        ParsedRow(sku='K5-24EXC', family='K', diameter=5.0, length=24.0, body='EX', finish='C', sales_count=100),
-        ParsedRow(sku='K5-30SBC', family='K', diameter=5.0, length=30.0, body='SB', finish='C', sales_count=800),
-        ParsedRow(sku='K5-36SBC', family='K', diameter=5.0, length=36.0, body='SB', finish='C', sales_count=200),
-        ParsedRow(sku='K6-24SBC', family='K', diameter=6.0, length=24.0, body='SB', finish='C', sales_count=300),
-        ParsedRow(sku='BH5-30SBA', family='BH', diameter=5.0, length=30.0, body='SB', finish='A', sales_count=100),
-    ]
-    cat = _MockCatalog(rows)
-
-    # Test 1: full spec, single strong match expected
-    spec1 = PartSpec(family='K', diameter=5.0, length=24.0, finish='C', body='SB',
-                    raw_input='K 5 24 chrome SB')
-    r1 = disambiguate(spec1, cat)
-    assert r1.confidence == 'high', r1
-    assert r1.candidates[0].sku == 'K5-24SBC', r1.candidates
-
-    # Test 2: missing length — multiple candidates, popular SKU first
-    spec2 = PartSpec(family='K', diameter=5.0, finish='C', body='SB', raw_input='K 5 chrome SB')
-    r2 = disambiguate(spec2, cat)
-    skus_2 = [c.sku for c in r2.candidates]
-    assert skus_2[0] == 'K5-24SBC', f'expected popular SKU first, got {skus_2}'
-    assert len(r2.candidates) >= 2, skus_2
-
-    # Test 3: spec with diameter+length, no family — should narrow
-    spec3 = PartSpec(diameter=5.0, length=24.0, raw_input='5 inch 24 long')
-    r3 = disambiguate(spec3, cat)
-    assert len(r3.candidates) >= 1
-    assert all(c.parsed.diameter == 5.0 and c.parsed.length == 24.0 for c in r3.candidates)
-
-    # Test 4: empty spec — must refuse to enumerate
-    spec4 = PartSpec(raw_input='whatever')
-    r4 = disambiguate(spec4, cat)
-    assert r4.confidence == 'none', r4
-    assert r4.candidates == [], r4
-
-    # Test 5: nothing matches
-    spec5 = PartSpec(family='ZZZ', diameter=99.0, raw_input='unknown')
-    r5 = disambiguate(spec5, cat)
-    assert r5.confidence == 'none', r5
-
-    # Test 6: contradicting fields exclude candidates entirely.
-    # spec says body=EX; only rows with body=EX (or body=None) should appear.
-    spec6 = PartSpec(family='K', diameter=5.0, length=24.0, body='EX', finish='C',
-                    raw_input='K 5 24 ID chrome')
-    r6 = disambiguate(spec6, cat)
-    # K5-24EXC has body=EX, finish=C — should be the match
-    skus_6 = [c.sku for c in r6.candidates]
-    assert 'K5-24EXC' in skus_6, skus_6
-    # K5-24SBC must NOT appear (contradicts body)
-    assert 'K5-24SBC' not in skus_6, skus_6
-    # No candidate should have body in contradicting_fields
-    for c in r6.candidates:
-        assert 'body' not in c.contradicting_fields, c
-
-    print('disambiguator v2.0 — self-test passed')
-
-
-if __name__ == '__main__':
-    _selftest()

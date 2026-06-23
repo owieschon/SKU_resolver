@@ -12,7 +12,7 @@ deterministic verification that binds the proposal).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from model_provider.base import ModelRequest, ModelResponse, ModelUnavailable
 

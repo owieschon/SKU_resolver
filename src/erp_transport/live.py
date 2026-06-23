@@ -52,7 +52,7 @@ def build_live_backend(env=None, *, clock=None):
         return HttpBackend(_require(env, 'SKU_ERP_BASE_URL'),
                            token_provider=oauth)
     if kind == 'nav':
-        from erp_transport.sql_backend import SqlBackend   # pyodbc ([erp] extra)
+        from erp_transport.sql_backend import SqlBackend  # pyodbc ([erp] extra)
         return SqlBackend.from_pyodbc(_require(env, 'SKU_ERP_SQL_DSN'),
                                       schema=env.get('SKU_ERP_SQL_SCHEMA', 'dbo'))
     raise RuntimeError("set SKU_ERP_KIND=bc|nav and the matching connection env "

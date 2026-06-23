@@ -8,17 +8,23 @@ drop it), and the review checklist must render the rejection.
 from __future__ import annotations
 
 import pytest
+from harness_fixtures import BC, make_rig
 
 from erp_harness import (
-    CANONICAL_CONTRACT, ERPClass, ERPDescriptor, MappingState,
-    ProfileIntegrityError, ReviewGate, render_review_checklist,
+    CANONICAL_CONTRACT,
+    MappingState,
+    ProfileIntegrityError,
+    ReviewGate,
+    render_review_checklist,
 )
 from erp_harness.models import (
-    MappingRecord, ProposedMapping, SurfaceProfile, VerificationEvidence,
+    MappingRecord,
+    ProposedMapping,
+    SurfaceProfile,
+    VerificationEvidence,
 )
 from erp_harness.profile import build_profile
 from erp_harness.verification import verify_mapping
-from harness_fixtures import BC, make_rig, onboard
 
 
 def _proposal(field='sku', entity='items', source='number', by='test'):
@@ -75,8 +81,8 @@ def test_long_sku_tenant_verifies_correctly():
     part numbers are genuinely long (28 chars) still verifies — while a long
     description on the same entity is still rejected as the key. A hardcoded
     30-char ceiling would have wrongly rejected the real long SKU."""
-    from erp_harness.verification import verify_mapping as vm
     from erp_harness.transport import ManualClock, TransportRequest, TransportResponse
+    from erp_harness.verification import verify_mapping as vm
 
     class _LongSkuBackend:
         # SKUs ~28 chars (unique), descriptions ~80 chars.

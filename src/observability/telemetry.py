@@ -150,12 +150,12 @@ def init_tracing(service_name: str = 'sku-engine') -> bool:
         return False
     try:
         from opentelemetry import trace
-        from opentelemetry.sdk.trace import TracerProvider
-        from opentelemetry.sdk.trace.export import BatchSpanProcessor
-        from opentelemetry.sdk.resources import Resource
         from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
             OTLPSpanExporter,
         )
+        from opentelemetry.sdk.resources import Resource
+        from opentelemetry.sdk.trace import TracerProvider
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor
         endpoint = os.environ.get('SKU_OBS_OTLP_ENDPOINT',
                                   'http://localhost:4318/v1/traces')
         provider = TracerProvider(

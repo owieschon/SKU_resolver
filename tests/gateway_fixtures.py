@@ -5,13 +5,17 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from sku_translator import FixtureCatalogIndex, InMemoryStore
-from resolution import ResolutionService, catalog_content_version
 from fulfillment import load_inventory
 from gateway import (
-    Account, ConversationJournal, Gateway, InMemoryCustomerDB, SessionManager,
+    Account,
+    ConversationJournal,
+    Gateway,
+    InMemoryCustomerDB,
+    SessionManager,
     SyntheticPriceBook,
 )
+from resolution import ResolutionService, catalog_content_version
+from sku_translator import FixtureCatalogIndex, InMemoryStore
 
 REPO = Path(__file__).resolve().parent.parent
 CATALOG = REPO / 'data' / 'catalog.csv'

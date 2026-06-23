@@ -19,7 +19,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from gateway.conversation_state import (
-    AccountState, FactState, FactType, PartContext,
+    AccountState,
+    FactState,
+    FactType,
+    PartContext,
 )
 
 

@@ -38,7 +38,6 @@ def test_gateway_imports_no_network_stack():
 def test_answers_does_no_date_arithmetic():
     """availability must call ship_date, never do its own date math."""
     src = (SRC / 'answers.py').read_text()
-    tree = ast.parse(src)
     # no timedelta / date / datetime arithmetic imported into answers
     imported = _imports(SRC / 'answers.py')
     assert 'datetime' not in imported, \

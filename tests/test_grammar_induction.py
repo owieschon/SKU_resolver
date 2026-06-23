@@ -12,12 +12,15 @@ Two proving grounds:
 """
 from __future__ import annotations
 
-from erp_harness import (
-    decode_catalog, segment, shape_mask, CatalogGrammarReport,
-)
-from erp_harness.discovery import fetch_all_rows
 from harness_fixtures import make_rig
 
+from erp_harness import (
+    CatalogGrammarReport,
+    decode_catalog,
+    segment,
+    shape_mask,
+)
+from erp_harness.discovery import fetch_all_rows
 
 # --- primitives ----------------------------------------------------------------
 

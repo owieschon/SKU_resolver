@@ -42,10 +42,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / 'src'))
 
-from sku_translator import translate, FixtureCatalogIndex, InMemoryStore, RESOLVED
+from sku_translator import RESOLVED, FixtureCatalogIndex, InMemoryStore, translate
+from sku_translator.constructor import InsufficientSpecError, construct_sku
 from sku_translator.extractor import extract_spec
-from sku_translator.constructor import construct_sku, InsufficientSpecError
-from sku_translator.part_number_parser import parse as parse_sku
 
 # Measured at migration 2026-06-06: full round-trip = 9458/9919 = 95.35%.
 # Floor set just under baseline; a drop means an extractor/grammar regression.

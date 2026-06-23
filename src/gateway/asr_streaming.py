@@ -152,7 +152,7 @@ class AssemblyAIStreamingASR:
              encoding: str = TELEPHONY_ENCODING,
              keyterms: list[str] | None = None) -> StreamingSession:
         try:
-            import websocket   # websocket-client ([voice] extra)
+            import websocket  # websocket-client ([voice] extra)
         except ImportError as e:   # pragma: no cover - env-dependent
             raise RuntimeError("live streaming ASR needs the [voice] extra: "
                                "pip install '.[voice]'") from e
@@ -186,7 +186,6 @@ class _AaiSession:
         self._ws.settimeout(0.01)
 
     def feed(self, audio: bytes) -> None:
-        import websocket
         self._ws.send_binary(audio)
         # opportunistically drain so the socket buffer doesn't grow unbounded
         self._pump()

@@ -37,8 +37,11 @@ import certifi
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / 'src'))
 
-from runtime.agent_eval import (                       # noqa: E402
-    evaluate, format_results, load_scenarios, verify_frozen,
+from runtime.agent_eval import (  # noqa: E402
+    evaluate,
+    format_results,
+    load_scenarios,
+    verify_frozen,
 )
 
 API = 'https://api.elevenlabs.io/v1/convai'

@@ -4,16 +4,23 @@ numbers), per-session cost budget, deploy-guard preflight, alert dedup.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 
 from observability import (
-    AlertRouter, BudgetExceeded, CostEvent, CostLedger, anomaly_flags,
-    init_tracing, redact, reset_for_test, scrub_pii, set_attr, tracer,
+    AlertRouter,
+    BudgetExceeded,
+    CostEvent,
+    CostLedger,
+    anomaly_flags,
+    init_tracing,
+    redact,
+    reset_for_test,
+    scrub_pii,
+    set_attr,
+    tracer,
 )
 from observability.telemetry import _NoopTracer
-
 
 # ── tracing: off by default, fail-open ───────────────────────────────────────
 
@@ -113,7 +120,7 @@ def test_alert_dedup_and_file_audit(tmp_path):
                    now_iso='t0', dedup_key='k') is True
     assert r.route(severity='critical', title='t', summary='s',
                    now_iso='t1', dedup_key='k') is False   # deduped
-    rows = [json.loads(l) for l in
+    rows = [json.loads(ln) for ln in
             (tmp_path / 'alerts.jsonl').read_text().splitlines()]
     assert len(rows) == 1 and rows[0]['severity'] == 'critical'
 
@@ -122,7 +129,8 @@ def test_alert_dedup_and_file_audit(tmp_path):
 
 def test_verification_preflight_blocks_on_dirty_tree(tmp_path):
     import subprocess
-    from observability import verification_preflight, record_startup_commit
+
+    from observability import record_startup_commit, verification_preflight
     repo = tmp_path / 'repo'
     repo.mkdir()
     subprocess.run(['git', 'init', '-q'], cwd=repo, check=True)

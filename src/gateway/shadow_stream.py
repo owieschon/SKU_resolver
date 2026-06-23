@@ -14,8 +14,8 @@ audio. (The /shadow-stream endpoint wires it to a real WebSocket.)
 """
 from __future__ import annotations
 
-from gateway.voice_stream import parse_twilio_event
 from gateway.voice import transcript_is_usable
+from gateway.voice_stream import parse_twilio_event
 
 _DEFAULT_TRACKS = {'inbound': 'customer', 'outbound': 'rep'}
 

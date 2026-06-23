@@ -34,71 +34,71 @@ Architecture
   grammar is auditable; fuzzy matching is plain Levenshtein with
   bucket-scoping; no model calls in the hot path.
 """
-from sku_translator.normalizer import (
-    normalize_input,
-    normalize_surface,
-    normalize_dimension,
-    normalize_compound_dimension,
-    normalize_finish,
-    normalize_family_word,
-    normalize_body,
-    normalize_fit,
-    normalize_oem,
-    normalize_truck_model,
-    normalize_sku_fragment,
-    NormalizedInput,
-    NormalizedToken,
-)
-from sku_translator.extractor import (
-    extract_spec,
-    PartSpec,
-    Ambiguity,
-)
-from sku_translator.constructor import (
-    construct_sku,
-    ConstructionError,
-    InsufficientSpecError,
-    UnsupportedFamilyError,
-)
-from sku_translator.part_number_parser import parse
 from sku_translator.catalog_index import (
+    EXCLUDED_IPG_VALUES,
+    EXCLUDED_PGC_VALUES,
+    PROPRIETARY_SPELLINGS,
     CatalogIndex,
     ParsedRow,
     family_prefix_for,
-    is_proprietary_marker,
     is_excluded_ipg,
     is_excluded_pgc,
-    PROPRIETARY_SPELLINGS,
-    EXCLUDED_IPG_VALUES,
-    EXCLUDED_PGC_VALUES,
+    is_proprietary_marker,
 )
-from sku_translator.fixture_catalog import FixtureCatalogIndex
-from sku_translator.sqlite_catalog import SqliteCatalogIndex
-from sku_translator.erp_catalog import ERPCatalogIndex
-from sku_translator.fuzzy_matcher import (
-    FuzzyMatch,
-    fuzzy_match,
+from sku_translator.constructor import (
+    ConstructionError,
+    InsufficientSpecError,
+    UnsupportedFamilyError,
+    construct_sku,
 )
 from sku_translator.disambiguator import (
     Candidate,
     DisambiguationResult,
     disambiguate,
 )
+from sku_translator.erp_catalog import ERPCatalogIndex
+from sku_translator.extractor import (
+    Ambiguity,
+    PartSpec,
+    extract_spec,
+)
+from sku_translator.fixture_catalog import FixtureCatalogIndex
+from sku_translator.fuzzy_matcher import (
+    FuzzyMatch,
+    fuzzy_match,
+)
 from sku_translator.memory import (
-    MemoryStore,
     InMemoryStore,
-    TranslatorEvent,
+    MemoryStore,
     ReplayDecision,
+    TranslatorEvent,
     consult_memory,
     record_choice,
 )
+from sku_translator.normalizer import (
+    NormalizedInput,
+    NormalizedToken,
+    normalize_body,
+    normalize_compound_dimension,
+    normalize_dimension,
+    normalize_family_word,
+    normalize_finish,
+    normalize_fit,
+    normalize_input,
+    normalize_oem,
+    normalize_sku_fragment,
+    normalize_surface,
+    normalize_truck_model,
+)
+from sku_translator.part_number_parser import parse
+from sku_translator.sqlite_catalog import SqliteCatalogIndex
 from sku_translator.translator import (
-    TranslationResult,
-    translate,
-    record_translation_choice,
-    RESOLVED,
     PENDING_DISAMBIGUATION,
+    RESOLVED,
     UNRESOLVABLE,
+    TranslationResult,
+    record_translation_choice,
+    translate,
 )
 
 __all__ = [

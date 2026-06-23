@@ -18,6 +18,12 @@ jobs:
       - name: Install package
         run: pip install -e ".[dev]"
 
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Type-check the core (mypy)
+        run: mypy
+
       - name: Test suite (full — engine, fulfillment, resolution, ERP harness, gateway, runtime)
         run: pytest --junitxml=state/pytest.xml
 

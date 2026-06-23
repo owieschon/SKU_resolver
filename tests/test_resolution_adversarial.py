@@ -16,9 +16,9 @@ from __future__ import annotations
 import random
 from pathlib import Path
 
+from resolution import ResolutionService, catalog_content_version
 from sku_translator import FixtureCatalogIndex, InMemoryStore
 from sku_translator.catalog_index import ParsedRow
-from resolution import ResolutionService, catalog_content_version
 
 REPO = Path(__file__).resolve().parent.parent
 CATALOG_PATH = REPO / 'data' / 'catalog.csv'
@@ -187,8 +187,6 @@ def test_memory_does_not_leak_across_tenant_services():
     from sku_translator import record_translation_choice
 
     mem_a = InMemoryStore()
-    svc_a = ResolutionService(_tenant_001(), mem_a,
-                              catalog_version=catalog_content_version(CATALOG_PATH))
     svc_b = _tenant_b_service()
 
     # Drill a strong replay signal into A's memory for an ambiguous phrase.

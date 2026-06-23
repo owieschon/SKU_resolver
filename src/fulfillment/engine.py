@@ -101,6 +101,7 @@ def ship_date(
 
     # D4 — none on hand: the SKU's restock lead time governs.
     if record.qty_on_hand == 0:
+        assert record.lead_time_days is not None  # invariant: qty==0 carries a lead
         restock = ship_by_datetime(
             add_business_days(receipt_day, record.lead_time_days)
         )

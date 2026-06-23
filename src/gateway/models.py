@@ -10,7 +10,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-
 # --- session / verification (G2, #10, #13) -----------------------------------
 
 class SessionState(Enum):

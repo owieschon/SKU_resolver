@@ -4,7 +4,10 @@ this production adapter is fully CI-tested (no credentials, unlike ERP/LLM)."""
 from __future__ import annotations
 
 from gateway import (
-    Account, SqliteCustomerDB, SqlitePriceBook, SyntheticPriceBook,
+    Account,
+    SqliteCustomerDB,
+    SqlitePriceBook,
+    SyntheticPriceBook,
 )
 from gateway.customer_db import InMemoryCustomerDB
 
@@ -64,6 +67,7 @@ def test_pricebook_unknown_sku_none_unknown_tier_falls_back():
 
 def test_gateway_verifies_and_prices_against_sqlite(tmp_path):
     from gateway_fixtures import build_gateway
+
     from gateway import Channel
     gw, sessions, journal, clk = build_gateway(tmp_path)
 

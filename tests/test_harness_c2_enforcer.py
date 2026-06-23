@@ -8,10 +8,10 @@ arrived.
 from __future__ import annotations
 
 import pytest
+from harness_fixtures import make_rig
 
 from erp_harness import BudgetExhausted, SafetyEnforcer, WriteRefused
 from erp_harness.transport import ManualClock, TransportRequest, TransportResponse
-from harness_fixtures import make_rig
 
 
 class _CountingBackend:

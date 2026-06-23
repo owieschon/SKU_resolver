@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sku_translator import FixtureCatalogIndex, InMemoryStore
 from resolution import ResolutionService, catalog_content_version
+from sku_translator import FixtureCatalogIndex, InMemoryStore
 
 REPO = Path(__file__).resolve().parent.parent
 CATALOG_PATH = REPO / 'data' / 'catalog.csv'

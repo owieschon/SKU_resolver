@@ -4,8 +4,9 @@ gate behavior an operator would walk through.
 """
 from __future__ import annotations
 
-from gateway import Channel
 from gateway_fixtures import build_gateway
+
+from gateway import Channel
 
 
 def _open(gw, sessions, sid='S'):
@@ -70,6 +71,7 @@ def test_voice_readback_correction(tmp_path):
 # G-conv-6: out-of-horizon accurate refusal (no guessed date)
 def test_out_of_horizon_honest_refusal(tmp_path):
     from datetime import datetime
+
     from gateway_fixtures import NY
     # An OOS item with a long lead, ordered near the calendar edge.
     gw, sessions, journal, _ = build_gateway(

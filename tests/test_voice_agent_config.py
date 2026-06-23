@@ -8,10 +8,15 @@ from __future__ import annotations
 
 from gateway import VoicePersona
 from runtime.voice_agent import (
-    AgentSettings, asr_keywords_from_skus, build_agent_payload, guardrails_config,
-    load_system_prompt, resolve_part_tool, system_tools, validate_system_prompt,
+    AgentSettings,
+    asr_keywords_from_skus,
+    build_agent_payload,
+    guardrails_config,
+    load_system_prompt,
+    resolve_part_tool,
+    system_tools,
+    validate_system_prompt,
 )
-
 
 # -- the shipped prompt is valid ---------------------------------------------
 

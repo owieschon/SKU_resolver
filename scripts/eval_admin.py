@@ -15,8 +15,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'src'))
-from runtime.agent_eval import (                       # noqa: E402
-    burn_holdout_case, refreeze, verify_frozen,
+from runtime.agent_eval import (  # noqa: E402
+    burn_holdout_case,
+    refreeze,
+    verify_frozen,
 )
 
 

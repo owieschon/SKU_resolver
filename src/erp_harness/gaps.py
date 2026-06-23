@@ -14,7 +14,11 @@ are detected empirically (the entity is in the manifest but the surface
 from __future__ import annotations
 
 from erp_harness.models import (
-    ContractField, ERPClass, GapClass, NamedGap, SurfaceProfile,
+    ContractField,
+    ERPClass,
+    GapClass,
+    NamedGap,
+    SurfaceProfile,
 )
 
 # The canonical contract: what the downstream layers (CatalogIndex shape,

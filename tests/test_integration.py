@@ -19,25 +19,30 @@ from pathlib import Path
 
 try:
     from sku_translator import (
-        translate,
+        PENDING_DISAMBIGUATION,
+        RESOLVED,
+        UNRESOLVABLE,
         FixtureCatalogIndex,
         InMemoryStore,
         record_translation_choice,
-        RESOLVED, PENDING_DISAMBIGUATION, UNRESOLVABLE,
+        translate,
     )
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from sku_translator import (
-        translate,
+        PENDING_DISAMBIGUATION,
+        RESOLVED,
+        UNRESOLVABLE,
         FixtureCatalogIndex,
         InMemoryStore,
         record_translation_choice,
-        RESOLVED, PENDING_DISAMBIGUATION, UNRESOLVABLE,
+        translate,
     )
 
 
 import os as _os
+
 # Catalog fixture resolution: env override first, then repo-relative default.
 # (Dead container paths from the original build session removed 2026-06-06;
 # see docs/MIGRATION_NOTES.md.)
@@ -565,9 +570,6 @@ def test_proprietary_customer_filter_in_disambiguation():
     # if we don't filter
     query = f'{family} {diameter:.0f} chrome'
 
-    # Without customer: NORCO candidate may surface
-    r_no_customer = translate(query, cat)
-
     # With DEMO customer: NORCO candidates must be filtered
     r_demo = translate(query, cat, customer='DEMO')
     if r_demo.state == PENDING_DISAMBIGUATION:
@@ -770,11 +772,11 @@ def test_sales_dominance_k5_24sbc():
 def test_sales_dominance_helper_basic():
     """_is_sales_dominant: 3x and runner==0 thresholds."""
     try:
-        from sku_translator.disambiguator import _is_sales_dominant
         from sku_translator.catalog_index import ParsedRow
+        from sku_translator.disambiguator import _is_sales_dominant
     except ImportError:
-        from disambiguator import _is_sales_dominant
         from catalog_index import ParsedRow
+        from disambiguator import _is_sales_dominant
 
     def cand(sales):
         c = type('C', (), {})()
@@ -795,13 +797,13 @@ def test_sales_dominance_helper_basic():
 def test_sales_close_stays_pending():
     """When top and runner-up are within ratio gap, confidence must NOT be high."""
     try:
-        from sku_translator.extractor import PartSpec
-        from sku_translator.disambiguator import disambiguate
         from sku_translator.catalog_index import ParsedRow, family_prefix_for
+        from sku_translator.disambiguator import disambiguate
+        from sku_translator.extractor import PartSpec
     except ImportError:
-        from extractor import PartSpec
-        from disambiguator import disambiguate
         from catalog_index import ParsedRow, family_prefix_for
+        from disambiguator import disambiguate
+        from extractor import PartSpec
 
     class _Mock:
         def __init__(self, rows):
@@ -841,13 +843,13 @@ def test_sales_close_stays_pending():
 def test_sales_dominance_low_volume_not_promoted():
     """Top <100 sales must never promote via sales-dominance."""
     try:
-        from sku_translator.extractor import PartSpec
-        from sku_translator.disambiguator import disambiguate
         from sku_translator.catalog_index import ParsedRow, family_prefix_for
+        from sku_translator.disambiguator import disambiguate
+        from sku_translator.extractor import PartSpec
     except ImportError:
-        from extractor import PartSpec
-        from disambiguator import disambiguate
         from catalog_index import ParsedRow, family_prefix_for
+        from disambiguator import disambiguate
+        from extractor import PartSpec
 
     class _Mock:
         def __init__(self, rows):
@@ -890,7 +892,6 @@ def test_sales_dominance_low_volume_not_promoted():
 
 def _run_all():
     """Discover and run every test_* function in this module."""
-    import inspect
     test_fns = [
         (name, fn) for name, fn in globals().items()
         if name.startswith('test_') and callable(fn)
@@ -899,7 +900,6 @@ def _run_all():
 
     passed = 0
     failed: list[tuple[str, str]] = []
-    skipped: list[str] = []
 
     for name, fn in test_fns:
         try:
@@ -912,12 +912,12 @@ def _run_all():
 
     total = len(test_fns)
     print(f'\n{"=" * 70}')
-    print(f'INTEGRATION TEST RESULTS')
+    print('INTEGRATION TEST RESULTS')
     print(f'{"=" * 70}')
     print(f'  Passed:  {passed:3d} / {total}')
     print(f'  Failed:  {len(failed):3d}')
     if failed:
-        print(f'\nFailures:')
+        print('\nFailures:')
         for name, err in failed:
             err_short = err[:200] + ('...' if len(err) > 200 else '')
             print(f'  ✗ {name}')

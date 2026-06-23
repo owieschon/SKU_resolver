@@ -20,10 +20,13 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from erp_harness.enforcer import SafetyEnforcer
 from erp_harness.discovery import sample_rows
+from erp_harness.enforcer import SafetyEnforcer
 from erp_harness.models import (
-    ContractField, MappingRecord, MappingState, ProposedMapping,
+    ContractField,
+    MappingRecord,
+    MappingState,
+    ProposedMapping,
     VerificationEvidence,
 )
 

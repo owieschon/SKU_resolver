@@ -11,12 +11,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from resolution import Resolution, ResolutionService
-
 from gateway.models import (
-    Candidate, Channel, ConfirmationStrength, IdentifiedSKU,
+    Candidate,
+    Channel,
+    ConfirmationStrength,
+    IdentifiedSKU,
 )
 from gateway.spoken import spoken_description, to_spoken
+from resolution import Resolution, ResolutionService
 
 # Short, response-shaped affirmations only (borrowed from a prior agent's conservative
 # confirmation-signal gate): a long sentence with "yes" buried in it is NOT a

@@ -8,12 +8,19 @@ profile naming the entity. Never a clean, full-coverage run.
 from __future__ import annotations
 
 import pytest
+from harness_fixtures import BC, make_rig
 
 from erp_harness import (
-    ERPClass, ERPDescriptor, GapClass, HeuristicExplorer, OnboardingFailure,
-    UnsupportedERPError, generate_manifest, render_markdown, run_onboarding,
+    ERPClass,
+    ERPDescriptor,
+    GapClass,
+    HeuristicExplorer,
+    OnboardingFailure,
+    UnsupportedERPError,
+    generate_manifest,
+    render_markdown,
+    run_onboarding,
 )
-from harness_fixtures import BC, make_rig
 
 _WRITE_WORDS = ('write', 'create', 'modify', 'delete', 'admin', 'full')
 

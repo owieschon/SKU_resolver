@@ -31,8 +31,8 @@ import logging
 import os
 import time
 
-from runtime.custom_llm import handle_async
 from observability import telemetry
+from runtime.custom_llm import handle_async
 
 _log = logging.getLogger(__name__)
 

@@ -14,7 +14,9 @@ import json
 from dataclasses import dataclass
 
 from model_provider.base import (
-    ModelRequest, ModelResponse, ModelUnavailable,
+    ModelRequest,
+    ModelResponse,
+    ModelUnavailable,
 )
 from model_provider.keyring import key_for
 

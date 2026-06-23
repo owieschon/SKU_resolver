@@ -37,7 +37,9 @@ from erp_harness.catalog_source import CatalogSource
 from erp_harness.discovery import fetch_all_rows
 from erp_harness.gaps import CANONICAL_CONTRACT
 from erp_harness.grammar_induction import (
-    CatalogGrammarReport, RoleProposer, decode_catalog,
+    CatalogGrammarReport,
+    RoleProposer,
+    decode_catalog,
 )
 from erp_harness.harness import OnboardingResult, run_onboarding
 from erp_harness.models import ContractField, ERPDescriptor, TenantERPProfile

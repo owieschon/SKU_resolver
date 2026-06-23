@@ -4,7 +4,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from erp_harness import (
-    ERPClass, ERPDescriptor, ManualClock, HeuristicExplorer, SafetyEnforcer,
+    ERPClass,
+    ERPDescriptor,
+    HeuristicExplorer,
+    ManualClock,
+    SafetyEnforcer,
     run_onboarding,
 )
 from erp_twin import STANDARD_GRANTS, seeded_twin

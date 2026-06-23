@@ -27,13 +27,14 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(REPO / 'src'), str(REPO / 'tests')]
 
-from gateway import Channel                                    # noqa: E402
-from gateway.provenance import surfaced, has_binding_value_token  # noqa: E402
-from gateway.say_guard import safe_voice_say                   # noqa: E402
-from gateway_fixtures import build_gateway                     # noqa: E402
+from gateway_fixtures import build_gateway  # noqa: E402
+
+from gateway import Channel  # noqa: E402
+from gateway.provenance import has_binding_value_token, surfaced  # noqa: E402
+from gateway.say_guard import safe_voice_say  # noqa: E402
 from runtime.agent_brain import detect_ids_broad, normalize_id  # noqa: E402
-from runtime.custom_llm import handle                          # noqa: E402
-from runtime.openrouter_model import make_model_fn             # noqa: E402
+from runtime.custom_llm import handle  # noqa: E402
+from runtime.openrouter_model import make_model_fn  # noqa: E402
 
 
 def _exec_tool(gw, sid, tok, tool_call) -> dict:

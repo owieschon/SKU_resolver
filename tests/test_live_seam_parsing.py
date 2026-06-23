@@ -11,11 +11,10 @@ from __future__ import annotations
 import json
 from types import SimpleNamespace as NS
 
-from model_provider.base import ModelRequest
-from model_provider.anthropic_provider import parse_anthropic_response
-from model_provider.openai_compat import parse_openai_response
 from gateway.asr_streaming import parse_turn_message
-
+from model_provider.anthropic_provider import parse_anthropic_response
+from model_provider.base import ModelRequest
+from model_provider.openai_compat import parse_openai_response
 
 # --- AssemblyAI v3 Turn messages -----------------------------------------------
 
@@ -62,8 +61,9 @@ def test_turn_missing_transcript_is_empty_string():
 
 def test_assemblyai_requires_key(monkeypatch):
     monkeypatch.delenv('ASSEMBLYAI_API_KEY', raising=False)
-    from gateway.asr_streaming import AssemblyAIStreamingASR
     import pytest
+
+    from gateway.asr_streaming import AssemblyAIStreamingASR
     with pytest.raises(RuntimeError):
         AssemblyAIStreamingASR()
 

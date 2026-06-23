@@ -10,10 +10,12 @@ The model only proposes here. The seam's deterministic verifier still binds.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Callable
 
 from model_provider.base import (
-    ModelProvider, ModelRequest, ModelResponse, ModelUnavailable,
+    ModelProvider,
+    ModelRequest,
+    ModelResponse,
 )
 from model_provider.routing import ModelChoice, resolve_model
 

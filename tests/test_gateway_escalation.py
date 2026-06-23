@@ -6,8 +6,9 @@ candidates), and that a normal answerable turn never escalates.
 """
 from __future__ import annotations
 
-from gateway import Channel, EventType
 from gateway_fixtures import build_gateway
+
+from gateway import Channel, EventType
 
 
 def _open(gw, sessions, sid='S'):

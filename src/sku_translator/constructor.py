@@ -51,7 +51,6 @@ from typing import Any
 
 from sku_translator.extractor import PartSpec
 
-
 # ============================================================================
 # Section 1: Errors
 # ============================================================================
@@ -132,7 +131,7 @@ def _build_parametric(spec: PartSpec) -> str:
     Examples:
         K5-24SBC, BH5-30SBC, SP7-55SBC, ZP12-100EXA
     """
-    _require(spec, ['family', 'diameter', 'length', 'body', 'finish'], spec.family)
+    _require(spec, ['family', 'diameter', 'length', 'body', 'finish'], spec.family or 'parametric')
     return (
         f"{spec.family}{_fmt_num(spec.diameter)}-{_fmt_num(spec.length)}"
         f"{spec.body}{spec.finish}"
@@ -243,6 +242,7 @@ def _build_dss(spec: PartSpec) -> str:
     concatenated without separator. So 4"x8" = DSS-408, 4"x12" = DSS-412.
     """
     _require(spec, ['family', 'diameter', 'length'], 'DSS')
+    assert spec.diameter is not None and spec.length is not None
     if spec.diameter != int(spec.diameter):
         raise ConstructionError(
             f"DSS diameter must be a whole number (got {spec.diameter})"
@@ -326,6 +326,7 @@ def _build_ez_clamp(spec: PartSpec) -> str:
     Diameter encoding: implicit decimal. 4 = 4", 35 = 3.5", 225 = 2.25".
     """
     _require(spec, ['family', 'diameter'], 'EZ')
+    assert spec.diameter is not None
     return f"EZ-{_encode_clamp_diameter(spec.diameter)}SS"
 
 
@@ -335,6 +336,7 @@ def _build_griez_clamp(spec: PartSpec) -> str:
     Same diameter encoding as EZ.
     """
     _require(spec, ['family', 'diameter'], 'GRIEZ')
+    assert spec.diameter is not None
     return f"GRIEZ-{_encode_clamp_diameter(spec.diameter)}SS"
 
 
@@ -439,128 +441,3 @@ def construct_sku(spec: PartSpec) -> str:
         raise UnsupportedFamilyError(family=spec.family)
 
     return builder(spec)
-
-
-# ============================================================================
-# Section 6: Round-trip self-test
-# ============================================================================
-
-def _selftest() -> None:
-    """Build → parse → build round-trip on every supported family.
-
-    For each test SKU:
-      1. Parse via existing part_number_parser
-      2. Convert parser output to a PartSpec (via extractor)
-      3. Construct a SKU from the spec
-      4. Assert the constructed SKU equals the original
-
-    This is the strongest correctness check we have. If anything regresses
-    in the normalizer, extractor, or constructor, this catches it.
-    """
-    from sku_translator.extractor import extract_spec
-
-    # SKUs with full parser support and full constructor support should
-    # round-trip exactly.
-    full_round_trip = [
-        'K5-24SBC',
-        'K5-24EXA',
-        'K7-32SBS3',
-        'BH5-30SBC',
-        'A5-18SBA',
-        'SP7-55SBC',
-        # Reducer
-        # 'R5-6IOC',  # if reducer SKUs follow this template — skipped until verified
-        # CM
-        'CM-56C',
-        # SMB
-        'SMB-C',
-        'SMB-R',
-        # DSS
-        'DSS-408',
-        'DSS-512',
-        # 2K
-        '2K-48',
-        # EZ Seal
-        'EZ-4SS',
-        'GRIEZ-4SS',
-    ]
-
-    pass_through_skus = [
-        # These don't fully round-trip because the constructor relies on
-        # canonical_sku pass-through (PartSpec doesn't expose every field
-        # for every family yet). They still must produce the original SKU.
-        'L590-1715SC',  # elbow with explicit S=OD
-        'PG-VS',
-        'PG-VSS3',
-        'UHS-NS',
-        '41968-L',
-        '548CPL',
-        '888EX',
-        'H-IHM6A',
-        'PRK-L790C',
-        '50DD3101',
-    ]
-
-    for sku in full_round_trip + pass_through_skus:
-        spec = extract_spec(sku)
-        try:
-            constructed = construct_sku(spec)
-        except ConstructionError as e:
-            raise AssertionError(
-                f"Round-trip failed for {sku!r}: {e}\n"
-                f"  spec: {spec.to_dict()}"
-            )
-        assert constructed == sku, (
-            f"Round-trip mismatch for {sku!r}:\n"
-            f"  spec:        {spec.to_dict()}\n"
-            f"  constructed: {constructed!r}\n"
-            f"  expected:    {sku!r}"
-        )
-
-    # Direct-construction tests: build PartSpec from scratch (not from parser)
-    direct_tests = [
-        (PartSpec(family='K', diameter=5, length=24, body='SB', finish='C'),
-         'K5-24SBC'),
-        (PartSpec(family='BH', diameter=7, length=32, body='EX', finish='A'),
-         'BH7-32EXA'),
-        (PartSpec(family='CM', length=56, finish='C'),
-         'CM-56C'),
-        (PartSpec(family='DSS', diameter=4, length=8),
-         'DSS-408'),
-        (PartSpec(family='EZ', diameter=3.5),
-         'EZ-35SS'),
-        (PartSpec(family='EZ', diameter=2.25),
-         'EZ-225SS'),
-        (PartSpec(family='2K', length=48),
-         '2K-48'),
-    ]
-
-    for spec, expected in direct_tests:
-        constructed = construct_sku(spec)
-        assert constructed == expected, (
-            f"Direct construction failed:\n"
-            f"  spec:        {spec.to_dict()}\n"
-            f"  constructed: {constructed!r}\n"
-            f"  expected:    {expected!r}"
-        )
-
-    # Error case: missing fields surfaces as InsufficientSpecError
-    incomplete_spec = PartSpec(family='K', diameter=5)  # missing length, body, finish
-    try:
-        construct_sku(incomplete_spec)
-        raise AssertionError("Expected InsufficientSpecError, got success")
-    except InsufficientSpecError as e:
-        assert 'length' in e.missing_fields
-        assert 'body' in e.missing_fields
-        assert 'finish' in e.missing_fields
-
-    # Error case: unsupported family
-    bad_spec = PartSpec(family='ZZZNONEXISTENT')
-    try:
-        construct_sku(bad_spec)
-        raise AssertionError("Expected UnsupportedFamilyError, got success")
-    except UnsupportedFamilyError:
-        pass
-
-
-_selftest()

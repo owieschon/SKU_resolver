@@ -8,17 +8,29 @@ generalized. Two hard rules this package keeps:
 """
 from observability.alerts import AlertRouter
 from observability.cost import (
-    BudgetExceeded, CostEvent, CostLedger, anomaly_flags,
+    BudgetExceeded,
+    CostEvent,
+    CostLedger,
+    anomaly_flags,
 )
 from observability.deploy_guard import (
-    Preflight, StaleCheck, StartupSnapshot, check_for_stale_code,
-    record_startup_commit, verification_preflight,
-)
-from observability.telemetry import (
-    init_tracing, redact, register_structured, reset_for_test, scrub_pii,
-    set_attr, tracer,
+    Preflight,
+    StaleCheck,
+    StartupSnapshot,
+    check_for_stale_code,
+    record_startup_commit,
+    verification_preflight,
 )
 from observability.service_improvement import ImprovementLog, anon_key, scrub
+from observability.telemetry import (
+    init_tracing,
+    redact,
+    register_structured,
+    reset_for_test,
+    scrub_pii,
+    set_attr,
+    tracer,
+)
 
 __all__ = [
     'AlertRouter', 'BudgetExceeded', 'CostEvent', 'CostLedger', 'anomaly_flags',

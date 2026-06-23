@@ -3,14 +3,21 @@ transport timeouts (#8), token-expiry vs never-granted (#9)."""
 from __future__ import annotations
 
 import pytest
+from harness_fixtures import BC, make_rig
 
 from erp_harness import (
-    AtomicCatalogRef, AuthExpiredError, BudgetExhausted, HeuristicExplorer,
-    ReviewGate, SafetyEnforcer, TransportTimeout, run_onboarding, sync_items,
+    AtomicCatalogRef,
+    AuthExpiredError,
+    BudgetExhausted,
+    HeuristicExplorer,
+    ReviewGate,
+    SafetyEnforcer,
+    TransportTimeout,
+    run_onboarding,
+    sync_items,
     sync_items_incremental,
 )
 from erp_harness.transport import ManualClock, TransportRequest, TransportResponse
-from harness_fixtures import BC, make_rig
 
 
 def _approved(item_limit=120):

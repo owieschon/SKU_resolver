@@ -50,8 +50,8 @@ class CostLedger:
     def __post_init__(self):
         self.path = Path(self.path)
         if self.path.exists():
-            self.rows = [json.loads(l) for l in
-                         self.path.read_text().splitlines() if l.strip()]
+            self.rows = [json.loads(ln) for ln in
+                         self.path.read_text().splitlines() if ln.strip()]
 
     def record(self, event: CostEvent) -> None:
         row = event.as_row()

@@ -87,7 +87,7 @@ def test_family_prefix_bucket_matches(fixture_idx, sqlite_idx):
 
 def test_translate_works_through_sqlite_backend(sqlite_idx):
     # The goal: the resolution engine runs unchanged on this backend.
-    from sku_translator import translate, InMemoryStore
+    from sku_translator import InMemoryStore, translate
     r = translate('5 inch chrome curved 24 long SB',
                   catalog=sqlite_idx, memory=InMemoryStore())
     assert r.sku == 'K5-24SBC' and r.state == 'resolved'

@@ -16,6 +16,8 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",        # coverage measurement (pytest --cov=src)
+    "ruff>=0.6",              # lint + import-order (CI gate)
+    "mypy>=1.10",             # static type-check of the resolution core (CI gate)
     "defusedxml>=0.7",
     "fastapi>=0.110",
     "httpx>=0.27",            # FastAPI TestClient dependency (in-process, no network)
@@ -76,3 +78,41 @@ addopts = "-q"
 # .pth hook (macOS UF_HIDDEN on dotfiles can silently disable .pth processing
 # under Python 3.14 site.py — see docs/MIGRATION_NOTES.md).
 pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+# Correctness (pyflakes), pycodestyle errors/warnings, and import order (isort).
+select = ["E", "F", "W", "I"]
+# Line length is not enforced: the codebase favours long explanatory comments.
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Dev scripts and a few tests adjust sys.path before importing the package, so
+# imports legitimately follow executable statements.
+"scripts/*" = ["E402"]
+"analytics/run.py" = ["E402"]
+"tests/test_catalog_source.py" = ["E402"]
+"tests/test_ship_date_property.py" = ["E402"]
+# Tests favour compact one-line setup (a; b) and the occasional lambda — style
+# rules relaxed there; correctness rules (F-series) still apply.
+"tests/*" = ["E701", "E702", "E731"]
+
+# Static type-checking is gated on the deterministic core — the part of the
+# system where a type error is a correctness risk. The provider/runtime edges
+# (web stack, optional SDKs) are out of scope here.
+[tool.mypy]
+files = ["src/sku_translator", "src/fulfillment", "src/resolution"]
+python_version = "3.10"
+# Gate only the listed core packages; don't report errors in their dependencies
+# (the provider/runtime edges and third-party SDKs are out of scope here).
+follow_imports = "silent"
+ignore_missing_imports = true
+warn_unused_ignores = true
+no_implicit_optional = true
+check_untyped_defs = false
+# Every module uses a try/except import shim (package import, with a bare-name
+# fallback for running with src/ on the path); mypy reads that as a redefinition.
+disable_error_code = ["no-redef"]

@@ -9,14 +9,18 @@ from __future__ import annotations
 
 import json
 
-from erp_harness.grammar_induction import (
-    CatalogGrammarReport, decode_catalog, normalize_sku, segment,
-)
 from erp_harness.catalog_source import (
-    rows_from_catalog_lines, rows_from_html_tables, rows_from_worksheet,
+    rows_from_catalog_lines,
+    rows_from_html_tables,
+    rows_from_worksheet,
 )
-from gateway.voice_stream import mulaw_decode, parse_twilio_event, TwilioMediaStream
-
+from erp_harness.grammar_induction import (
+    CatalogGrammarReport,
+    decode_catalog,
+    normalize_sku,
+    segment,
+)
+from gateway.voice_stream import TwilioMediaStream, mulaw_decode, parse_twilio_event
 
 # --- grammar induction: degenerate catalogs ------------------------------------
 

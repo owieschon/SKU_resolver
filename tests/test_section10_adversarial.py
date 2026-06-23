@@ -10,15 +10,15 @@ disclosure. The gate / guard must fail it closed regardless.
 """
 from __future__ import annotations
 
+import pytest
+
 from gateway.conversation import Conversation
 from gateway.conversation_state import (
-    AccountState, Fact, FactType, IdentityState, PartContext,
+    Fact,
+    FactType,
 )
-from gateway.disclosure_gate import discloseable
 from gateway.disclosure_say import render_availability
-from gateway.say_guard import assert_no_internal_state, internal_state_tokens
-import pytest
-from gateway.say_guard import InternalStateLeak
+from gateway.say_guard import InternalStateLeak, assert_no_internal_state, internal_state_tokens
 
 NOW = 1_000_000.0
 

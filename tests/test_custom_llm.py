@@ -6,20 +6,23 @@ round-trip fidelity, and unmappable-payload fail-closed.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 
 import pytest
+from gateway_fixtures import build_gateway
 
 from gateway import Channel
 from gateway.provenance import surfaced
 from gateway.spoken import voice_render
-from gateway_fixtures import build_gateway
-import asyncio
-
 from runtime.agent_brain import FALLBACK, SERVICE_FALLBACK
 from runtime.custom_llm import (
-    MappingError, handle, handle_async, map_request, map_response,
+    MappingError,
+    handle,
+    handle_async,
+    map_request,
+    map_response,
     parse_tool_content,
 )
 

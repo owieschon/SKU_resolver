@@ -5,9 +5,9 @@ classification, not the count.
 """
 from __future__ import annotations
 
-from erp_harness import CANONICAL_CONTRACT, GapClass, MappingState
 from harness_fixtures import onboard
 
+from erp_harness import CANONICAL_CONTRACT, GapClass
 
 # --- smoke ----------------------------------------------------------------------
 
@@ -26,7 +26,11 @@ def test_alternative_entity_gap_when_data_lives_on_unexpected_entity():
     different discovered entity, the gap names the alternative for remap."""
     from erp_harness.gaps import CANONICAL_CONTRACT, classify_unmapped
     from erp_harness.models import (
-        EntitySchema, FieldSchema, GapClass, SurfaceProfile, ERPClass,
+        EntitySchema,
+        ERPClass,
+        FieldSchema,
+        GapClass,
+        SurfaceProfile,
     )
     # 'items' exists but carries no sku-like field; 'itemMaster' carries it.
     items = EntitySchema('items', (FieldSchema('blob', 'Edm.String', True, 1, False),))

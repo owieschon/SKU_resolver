@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
 
 try:
     from sku_translator.catalog_index import ParsedRow, family_prefix_for
@@ -120,7 +120,7 @@ class SqliteCatalogIndex:
 
     @staticmethod
     def _to_record(r: ParsedRow) -> tuple:
-        vals = [r.sku, r.sku.upper(), family_prefix_for(r.sku)]
+        vals: list[Any] = [r.sku, r.sku.upper(), family_prefix_for(r.sku)]
         for c in _COLUMNS:
             if c == 'sku':
                 continue
@@ -173,7 +173,8 @@ class SqliteCatalogIndex:
         diameter: float | None = None,
     ) -> list[ParsedRow]:
         sql = 'SELECT * FROM catalog'
-        clauses, params = [], []
+        clauses: list[str] = []
+        params: list[Any] = []
         if family is not None:
             clauses.append('family = ?')
             params.append(family)

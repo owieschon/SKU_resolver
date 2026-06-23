@@ -30,8 +30,12 @@ import json
 import time
 
 from runtime.agent_brain import (
-    FALLBACK, SERVICE_FALLBACK, apply_model_output, decide_turn,
-    is_substitution_turn, substitution,
+    FALLBACK,
+    SERVICE_FALLBACK,
+    apply_model_output,
+    decide_turn,
+    is_substitution_turn,
+    substitution,
 )
 
 

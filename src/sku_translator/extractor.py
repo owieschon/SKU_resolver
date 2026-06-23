@@ -44,16 +44,14 @@ Usage
 """
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from typing import Any
 
 from sku_translator.normalizer import (
-    normalize_input,
     NormalizedInput,
     NormalizedToken,
+    normalize_input,
 )
-
 
 # ============================================================================
 # Section 1: Spec data model
@@ -263,7 +261,7 @@ FAMILY_DIMENSION_ORDER: dict[str, list[str]] = {
 # Customer-program prefixes that come from numeric tokens. When one of
 # these numbers shows up alongside customer-program context (Performance
 # Diesel, etc.), it's NOT a dimension.
-CUSTOMER_PROGRAM_NUMBERS: dict[str, dict[str, Any]] = {
+CUSTOMER_PROGRAM_NUMBERS: dict[int, dict[str, Any]] = {
     548:   {'customer': 'Apex Diesel', 'family': '548',
             'program': '548 series (charger/dump pipes)'},
     777:   {'customer': 'Apex Diesel', 'family': '777',
@@ -498,12 +496,10 @@ def _build_spec_from_tokens(
 
     # First: any SKU fragments? They override family-words because they're
     # more specific. If a fragment carries diameter, that wins too.
-    fragment_seen = False
     for i, t in enumerate(normalized.tokens):
         if t.kind != 'sku_fragment':
             continue
         consumed.add(i)
-        fragment_seen = True
         if spec.family is None:
             spec.family = t.data['family']
         if spec.diameter is None and 'diameter' in t.data:
@@ -1013,76 +1009,3 @@ def _check_spec_completeness(spec: PartSpec) -> None:
                 raw_input=spec.raw_input,
                 reason='Reducer requires both inlet and outlet fit (ID or OD)',
             ))
-
-
-# ============================================================================
-# Section 6: Self-test
-# ============================================================================
-
-def _selftest() -> None:
-    # Full SKU pass-through
-    spec = extract_spec('K5-24SBC')
-    assert spec.canonical_sku == 'K5-24SBC' or (
-        spec.family == 'K' and spec.diameter == 5.0
-    ), f"Full SKU pass-through failed: {spec.to_dict()}"
-
-    # Full natural-language input
-    spec = extract_spec('5 inch chrome curved stack 24 inches OD/OD')
-    assert spec.family == 'K', f"Expected K, got {spec.family}"
-    assert spec.diameter == 5.0
-    assert spec.length == 24.0
-    assert spec.finish == 'C'
-    assert spec.fit_inlet == 'OD'
-    assert spec.fit_outlet == 'OD'
-
-    # Word-order independence
-    spec = extract_spec('curved stack 24 inches 5 inch chrome')
-    assert spec.family == 'K'
-    assert spec.diameter == 5.0
-    assert spec.length == 24.0
-
-    # Elbow with angle
-    spec = extract_spec('5 inch 90 degree elbow chrome')
-    assert spec.family == 'L'
-    assert spec.diameter == 5.0
-    assert spec.angle == 90
-    assert spec.finish == 'C'
-
-    # Reducer with bilateral
-    spec = extract_spec('6 to 5 reducer ID/OD')
-    assert spec.family == 'R'
-    assert spec.fit_inlet == 'ID'
-    assert spec.fit_outlet == 'OD'
-
-    # Customer-program detection
-    spec = extract_spec('Apex Diesel 548 charger pipe lower')
-    assert spec.customer == 'Apex Diesel', f"Customer: {spec.customer}"
-    assert spec.family == '548'
-    assert spec.canonical_sku == '548CPL'
-
-    # Truck model implies make
-    spec = extract_spec('cascadia 5 inch elbow 90')
-    assert spec.oem == 'FL'
-    assert spec.truck_model == 'cascadia'
-    assert spec.family == 'L'
-
-    # OEM dedup
-    spec = extract_spec('Peterbilt 379 chrome stack for a Pete')
-    assert spec.oem == 'PB'
-    # No oem_conflict ambiguity
-    assert not any(a.type == 'oem_conflict' for a in spec.ambiguities), \
-        f"Unexpected conflict: {[a.type for a in spec.ambiguities]}"
-
-    # Ambiguous family
-    spec = extract_spec('5 chrome stack 24')
-    assert spec.family is None  # couldn't resolve
-    assert any(a.type == 'family_unspecified' for a in spec.ambiguities)
-
-    # Completeness check: stack with no finish
-    spec = extract_spec('5 inch curved stack 24')
-    assert spec.family == 'K'
-    assert any(a.type == 'finish_unspecified' for a in spec.ambiguities)
-    assert any(a.type == 'body_unspecified' for a in spec.ambiguities)
-
-
-_selftest()

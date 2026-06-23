@@ -7,14 +7,21 @@ cannot become a live alias.
 from __future__ import annotations
 
 import pytest
-
 from gateway_fixtures import build_gateway
+
 from pilot.decision_point import DecisionPoint
 from pilot.labeling import (
-    Label, LabelType, Provenance, Question, label_questions, route,
+    Label,
+    LabelType,
+    Provenance,
+    label_questions,
+    route,
 )
 from pilot.stores import (
-    CorrectionCandidateQueue, EvalCandidatePool, LabelStores, QualityQuarantine,
+    CorrectionCandidateQueue,
+    EvalCandidatePool,
+    LabelStores,
+    QualityQuarantine,
     WrongLabelType,
 )
 

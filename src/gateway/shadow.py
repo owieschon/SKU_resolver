@@ -23,6 +23,12 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Runtime imports are done inside methods to avoid a circular import with
+    # alias_store; this resolves the name for annotations / type-checkers.
+    from gateway.alias_store import Alias
 
 # A customer utterance is "part-like" (worth attempting) if it carries a
 # code-shaped token (letters+digits) or a product descriptor. Chit-chat and
@@ -149,7 +155,6 @@ class CorrectionStore:
     behavior (unchanged — they are not aliases)."""
 
     def __init__(self, catalog, path=None) -> None:
-        from gateway.alias_store import Alias
         self._catalog = catalog
         self._path = path                  # persist here if given (JSON)
         self._aliases: dict[str, Alias] = {}
@@ -238,7 +243,8 @@ class CorrectionStore:
     def _save(self) -> None:
         if self._path is None:
             return
-        import json, dataclasses
+        import dataclasses
+        import json
         from pathlib import Path
         p = Path(self._path)
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -250,6 +256,7 @@ class CorrectionStore:
     def load(self) -> None:
         import json
         from pathlib import Path
+
         from gateway.alias_store import Alias
         p = Path(self._path)
         if not p.exists():

@@ -26,7 +26,6 @@ pytestmark = pytest.mark.skipif(
 def test_assemblyai_streaming_connects_and_terminates():
     pytest.importorskip('websocket')   # [voice] extra
     from gateway.asr_streaming import AssemblyAIStreamingASR
-    from gateway.voice_stream import mulaw_decode
 
     asr = AssemblyAIStreamingASR()
     # PCM16 @ 16k is the documented default encoding; 1s of silence.

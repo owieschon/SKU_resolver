@@ -23,7 +23,11 @@ from typing import Callable, Mapping
 
 from erp_harness.models import AuthExpiredError
 from erp_harness.transport import (
-    Backend, Clock, TransportRequest, TransportResponse, TransportTimeout,
+    Backend,
+    Clock,
+    TransportRequest,
+    TransportResponse,
+    TransportTimeout,
 )
 
 

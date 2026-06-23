@@ -22,8 +22,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(REPO / 'src')]
 
-from fastapi.testclient import TestClient                      # noqa: E402
-from runtime.app import create_app                             # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+
+from runtime.app import create_app  # noqa: E402
 
 # Varied free-turn prompts: small talk (-> route=free) and part questions the
 # model answers by proposing a tool_call (-> route=tool_call). Both are MODEL
@@ -76,7 +77,7 @@ def main():
         if (i + 1) % 10 == 0:
             print(f'  {i + 1}/{n}  (last {round(time.monotonic() - t0, 2)}s)')
 
-    rows = [json.loads(l) for l in ledger.read_text().splitlines()]
+    rows = [json.loads(ln) for ln in ledger.read_text().splitlines()]
     by_route = {}
     for r in rows:
         by_route.setdefault(r['route'], []).append(r)
@@ -97,7 +98,7 @@ def main():
     model_lat = [r['latency_secs'] for rt in model_routes for r in by_route[rt]
                  if r.get('latency_secs') is not None]
     mp = _percentiles(model_lat)
-    print(f'\n=== MODEL route (free+tool_call+over_budget) — the population B gates ===')
+    print('\n=== MODEL route (free+tool_call+over_budget) — the population B gates ===')
     print(f'  {mp}')
     print(f'  -> set B at a high percentile of THIS (p95={mp.get("p95")}, '
           f'p99={mp.get("p99")}, max={mp.get("max")}), bounded above by '

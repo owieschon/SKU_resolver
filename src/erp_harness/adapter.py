@@ -10,13 +10,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from sku_translator.catalog_index import ParsedRow, family_prefix_for
-from sku_translator.part_number_parser import parse as parse_sku
-
+from erp_harness.discovery import fetch_all_rows
 from erp_harness.drift import DriftGuard
 from erp_harness.enforcer import SafetyEnforcer
-from erp_harness.discovery import fetch_all_rows
 from erp_harness.models import TenantERPProfile
+from sku_translator.catalog_index import ParsedRow, family_prefix_for
+from sku_translator.part_number_parser import parse as parse_sku
 
 
 class UnapprovedProfileError(Exception):

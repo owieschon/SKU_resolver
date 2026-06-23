@@ -5,11 +5,12 @@ incidental numbers (dimensions) must not be mistaken for binding facts.
 """
 from __future__ import annotations
 
+from gateway_fixtures import build_gateway
+
 from gateway import Channel
 from gateway.models import TurnResponse
 from gateway.provenance import assert_complete, has_binding_value_token, surfaced
 from gateway.say_guard import internal_state_tokens
-from gateway_fixtures import build_gateway
 
 
 def _conv(tmp_path):

@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from model_provider import ScriptedProvider, LLMClient
-from sku_translator import FixtureCatalogIndex, InMemoryStore
+from model_provider import LLMClient, ScriptedProvider
 from resolution import ResolutionService, catalog_content_version
 from resolution.chooser import LLMChooser
+from sku_translator import FixtureCatalogIndex, InMemoryStore
 
 REPO = Path(__file__).resolve().parent.parent
 CATALOG = REPO / 'data' / 'catalog.csv'
@@ -86,10 +86,11 @@ def test_default_service_has_no_chooser_d5_behavior():
 # ── onboarding explorer ──────────────────────────────────────────────────────
 
 def test_llm_explorer_proposals_are_field_guarded():
-    from erp_harness.explorer import LLMExplorer
+    from harness_fixtures import make_rig  # noqa: E402
+
     from erp_harness import CANONICAL_CONTRACT
-    from harness_fixtures import make_rig          # noqa: E402
     from erp_harness.discovery import discover
+    from erp_harness.explorer import LLMExplorer
     _, _, enforcer = make_rig(item_limit=50)
     surface = discover(enforcer)
     # Model proposes one real mapping and one fabricated field.
@@ -107,10 +108,11 @@ def test_llm_explorer_proposals_are_field_guarded():
 
 
 def test_llm_explorer_falls_back_when_unavailable():
-    from erp_harness.explorer import LLMExplorer, HeuristicExplorer
-    from erp_harness import CANONICAL_CONTRACT
     from harness_fixtures import make_rig
+
+    from erp_harness import CANONICAL_CONTRACT
     from erp_harness.discovery import discover
+    from erp_harness.explorer import LLMExplorer
     _, _, enforcer = make_rig(item_limit=50)
     surface = discover(enforcer)
     provider = ScriptedProvider(fail_tasks={'onboarding_map'})
@@ -123,7 +125,7 @@ def test_llm_explorer_falls_back_when_unavailable():
 # ── intent router ────────────────────────────────────────────────────────────
 
 def test_llm_intent_router_classifies_and_binds():
-    from gateway.intent import LLMIntentRouter, Intent
+    from gateway.intent import Intent, LLMIntentRouter
     provider = ScriptedProvider(scripted={'intent':
                                       {'intent': 'pricing', 'reason': 'x'}})
     router = LLMIntentRouter(LLMClient(provider=provider))
@@ -131,7 +133,7 @@ def test_llm_intent_router_classifies_and_binds():
 
 
 def test_llm_intent_router_falls_back_when_unavailable():
-    from gateway.intent import LLMIntentRouter, Intent
+    from gateway.intent import Intent, LLMIntentRouter
     provider = ScriptedProvider(fail_tasks={'intent'})
     router = LLMIntentRouter(LLMClient(provider=provider))
     # model down -> rule-based fallback still classifies a clear pricing turn
@@ -139,7 +141,7 @@ def test_llm_intent_router_falls_back_when_unavailable():
 
 
 def test_rule_based_router_matches_legacy_routing():
-    from gateway.intent import RuleBasedIntentRouter, Intent
+    from gateway.intent import Intent, RuleBasedIntentRouter
     r = RuleBasedIntentRouter()
     assert r.classify('is K5-24SBC in stock?').intent is Intent.AVAILABILITY
     assert r.classify('my account number is 1001').intent is Intent.VERIFY

@@ -7,17 +7,20 @@ human release → ACTIVE. No test recreates the deleted instant-add path.
 from __future__ import annotations
 
 import pytest
+from gateway_fixtures import _shared_catalog
 
 from gateway import (
-    CapabilityMap, CorrectionStore, SelfHeal, ShadowCampaign, ShadowObserver,
+    CapabilityMap,
+    CorrectionStore,
+    ShadowCampaign,
+    ShadowObserver,
     looks_part_like,
 )
-from gateway.alias_store import ACTIVE, PROPOSED, AWAITING_RELEASE
+from gateway.alias_store import ACTIVE, PROPOSED
 from learning.eval_battery import Verdict
 from observability import ImprovementLog, anon_key
 from resolution import ResolutionService
 from sku_translator import InMemoryStore
-from gateway_fixtures import _shared_catalog
 
 REAL_SKU = 'K5-24SBC'
 FAIL = 'do you stock the qq9zz adapter'   # part-like token, not in catalog
@@ -276,9 +279,10 @@ def test_auto_confirm_alias_resolves_with_readback():
     """POSITIVE PROOF: an ACTIVE auto_confirm alias → source='learned_alias',
     confidence='medium', needs_review=True → readback. The confirm-on-alias path
     where baseline resolved silently (DELTA A)."""
+    from gateway.alias_store import on_confirm
+    from gateway.alias_store import resolution_mode as rm
     from resolution import ResolutionService
     from sku_translator import InMemoryStore
-    from gateway.alias_store import on_confirm, resolution_mode as rm
     cat, ver = _shared_catalog()
     corr = CorrectionStore(cat)
     # Propose with rep_label: c0=0.30 + 0.25 = 0.55
@@ -301,9 +305,9 @@ def test_auto_confirm_alias_resolves_with_readback():
 def test_shared_store_makes_self_heal_reach_production_after_gate():
     """The real loop: ONE store shared by the shadow observer and the live svc.
     Autonomous ride-along proposes; only after battery+release does it resolve."""
+    from gateway.alias_store import on_confirm
     from resolution import ResolutionService
     from sku_translator import InMemoryStore
-    from gateway.alias_store import on_confirm
     cat, ver = _shared_catalog()
     corr = CorrectionStore(cat)
     svc = ResolutionService(cat, InMemoryStore(), catalog_version=ver,
@@ -342,9 +346,13 @@ def test_corrections_persist_and_revalidate_on_load(tmp_path):
 def test_shadow_stream_bridge_ride_along_self_heals_from_audio():
     import base64
     import json
+
     from gateway import (
-        ContinuousImprovement, ShadowObserver, ShadowStreamBridge,
-        SimulatedStreamingASR, Transcript,
+        ContinuousImprovement,
+        ShadowObserver,
+        ShadowStreamBridge,
+        SimulatedStreamingASR,
+        Transcript,
     )
     svc, cat = _svc()
     corr = CorrectionStore(cat)

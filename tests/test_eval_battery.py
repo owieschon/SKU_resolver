@@ -8,7 +8,10 @@ decorative.
 from __future__ import annotations
 
 from learning.eval_battery import (
-    BatteryParams, CandidateRule, HeldOutCase, evaluate, matches,
+    CandidateRule,
+    HeldOutCase,
+    evaluate,
+    matches,
 )
 
 

@@ -19,7 +19,9 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from fulfillment import (
-    InventoryRecord, PartialPolicy, ship_date,
+    InventoryRecord,
+    PartialPolicy,
+    ship_date,
 )
 
 NY = ZoneInfo('America/New_York')

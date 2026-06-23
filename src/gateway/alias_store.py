@@ -24,7 +24,7 @@ deterministic in tests.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 
 # Exogenous label sources, by tier. STRONG = reality/expert; WEAK = caller.
 STRONG_SOURCES = ('order_not_returned', 'rep_label')

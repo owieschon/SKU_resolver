@@ -11,7 +11,9 @@ from types import SimpleNamespace
 import pytest
 
 from runtime.openrouter_model import (
-    RESOLVE_PART_TOOL, make_model_fn, production_system_prompt,
+    RESOLVE_PART_TOOL,
+    make_model_fn,
+    production_system_prompt,
 )
 
 

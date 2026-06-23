@@ -7,10 +7,10 @@ than echoing known aliases.
 """
 from __future__ import annotations
 
+from harness_fixtures import make_rig
+
 from erp_harness import analyze_items
 from erp_harness.discovery import fetch_all_rows
-from erp_twin.twin import TwinField
-from harness_fixtures import make_rig
 
 
 def _rows(enforcer, limit=200):

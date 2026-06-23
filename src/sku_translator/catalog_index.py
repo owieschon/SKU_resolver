@@ -42,8 +42,7 @@ the data came from.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Iterator, Protocol, runtime_checkable
-
+from typing import Any, Iterator, Protocol, runtime_checkable
 
 # ============================================================================
 # Data shape

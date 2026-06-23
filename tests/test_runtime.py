@@ -8,9 +8,9 @@ from __future__ import annotations
 import pytest
 
 pytest.importorskip('fastapi')
-from fastapi.testclient import TestClient   # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 
-from runtime.app import create_app          # noqa: E402
+from runtime.app import create_app  # noqa: E402
 
 
 @pytest.fixture(scope='module')
@@ -81,11 +81,12 @@ def test_agent_tool_requires_secret_when_configured(client, monkeypatch):
 def test_agent_tool_captures_same_improvement_data():
     # Parity: the hosted-agent path feeds the continuous-improvement loop just
     # like the agent's own voice calls do.
+    from gateway_fixtures import _shared_catalog
+
     from gateway import ContinuousImprovement, CorrectionStore, ShadowObserver
     from resolution import ResolutionService
-    from sku_translator import InMemoryStore
-    from gateway_fixtures import _shared_catalog
     from runtime.app import create_app
+    from sku_translator import InMemoryStore
     cat, ver = _shared_catalog()
     corr = CorrectionStore(cat)
     svc = ResolutionService(cat, InMemoryStore(), catalog_version=ver,
@@ -172,7 +173,6 @@ def test_voice_rejects_spoofed_request_when_token_configured(client, monkeypatch
 # -- Twilio Media Streams WebSocket (Streaming-STT path) ----------------------
 
 def test_voice_greeting_uses_configured_persona():
-    import json
     from gateway import VoicePersona
     from runtime.app import create_app
     app = create_app(persona=VoicePersona(name='Sam at the parts desk'))
@@ -181,8 +181,8 @@ def test_voice_greeting_uses_configured_persona():
 
 
 def test_voice_stream_speaks_persona_greeting_on_start():
-    import base64
     import json
+
     from gateway import SimulatedStreamingASR, SimulatedTTS, VoicePersona
     from runtime.app import create_app
     app = create_app(streaming_asr=SimulatedStreamingASR(), tts=SimulatedTTS(),
@@ -208,14 +208,20 @@ def test_voice_stream_feeds_continuous_improvement():
     # an uncertain transcript becomes a review opportunity after the call.
     import base64
     import json
+
+    from gateway_fixtures import _shared_catalog
+
     from gateway import (
-        ContinuousImprovement, CorrectionStore, ShadowObserver,
-        SimulatedStreamingASR, SimulatedTTS, Transcript,
+        ContinuousImprovement,
+        CorrectionStore,
+        ShadowObserver,
+        SimulatedStreamingASR,
+        SimulatedTTS,
+        Transcript,
     )
     from resolution import ResolutionService
-    from sku_translator import InMemoryStore
-    from gateway_fixtures import _shared_catalog
     from runtime.app import create_app
+    from sku_translator import InMemoryStore
 
     cat, ver = _shared_catalog()
     svc = ResolutionService(cat, InMemoryStore(), catalog_version=ver)
@@ -248,14 +254,19 @@ def test_shadow_stream_endpoint_observes_and_learns():
     # transcript -> continuous loop -> a rep resolution is harvested live.
     import base64
     import json
+
+    from gateway_fixtures import _shared_catalog
+
     from gateway import (
-        ContinuousImprovement, CorrectionStore, ShadowObserver,
-        SimulatedStreamingASR, Transcript,
+        ContinuousImprovement,
+        CorrectionStore,
+        ShadowObserver,
+        SimulatedStreamingASR,
+        Transcript,
     )
     from resolution import ResolutionService
-    from sku_translator import InMemoryStore
-    from gateway_fixtures import _shared_catalog
     from runtime.app import create_app
+    from sku_translator import InMemoryStore
 
     cat, ver = _shared_catalog()
     corr = CorrectionStore(cat)
@@ -295,6 +306,7 @@ def test_shadow_stream_endpoint_observes_and_learns():
 def test_voice_stream_websocket_full_duplex():
     import base64
     import json
+
     from gateway import SimulatedStreamingASR, SimulatedTTS, Transcript
     from runtime.app import create_app
 
@@ -326,7 +338,7 @@ def test_voice_stream_websocket_full_duplex():
 
 
 def test_to_spoken_normalizes_dimensions_for_speech():
-    from gateway.spoken import to_spoken, spoken_description
+    from gateway.spoken import spoken_description, to_spoken
     assert to_spoken('5"X24') == '5 by 24 inch'
     assert to_spoken('5" x 24"') == '5 by 24 inch'
     assert to_spoken('5x24') == '5 by 24 inch'

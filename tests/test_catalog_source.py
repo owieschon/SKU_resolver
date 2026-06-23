@@ -12,7 +12,9 @@ from pathlib import Path
 import pytest
 
 from erp_harness import (
-    decode_catalog, rows_from_catalog_lines, rows_from_html_tables,
+    decode_catalog,
+    rows_from_catalog_lines,
+    rows_from_html_tables,
     rows_from_worksheet,
 )
 

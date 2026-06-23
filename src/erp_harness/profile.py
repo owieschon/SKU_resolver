@@ -12,7 +12,11 @@ from dataclasses import replace
 from typing import Any, Mapping
 
 from erp_harness.models import (
-    Approval, ERPDescriptor, MappingRecord, MappingState, NamedGap,
+    Approval,
+    ERPDescriptor,
+    MappingRecord,
+    MappingState,
+    NamedGap,
     TenantERPProfile,
 )
 

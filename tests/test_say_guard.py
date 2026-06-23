@@ -10,17 +10,18 @@ read back for confirmation must pass).
 from __future__ import annotations
 
 import pytest
+from gateway_fixtures import build_gateway
 
+from gateway import Channel
 from gateway.escalation import informed_question
 from gateway.say_guard import (
-    InternalStateLeak, assert_no_internal_state, internal_state_tokens,
+    InternalStateLeak,
+    assert_no_internal_state,
+    internal_state_tokens,
     safe_voice_say,
 )
 from gateway.spoken import voice_render
-from gateway_fixtures import build_gateway
-from gateway import Channel
 from resolution.service import Candidate, OpenQuestion
-
 
 # -- the two leaks from the live adversarial run, verbatim -------------------
 

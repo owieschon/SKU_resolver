@@ -15,7 +15,6 @@ the in-memory/synthetic sources for seeding and tests.
 from __future__ import annotations
 
 import sqlite3
-from pathlib import Path
 
 from gateway.models import Account
 

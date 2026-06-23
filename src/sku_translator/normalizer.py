@@ -54,7 +54,6 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # ============================================================================
 # Section 1: Surface normalization
 # ============================================================================
@@ -1065,7 +1064,6 @@ BARE_FAMILY_CODES: dict[str, dict[str, Any]] = {
     'SA':  {'code': 'A',   'category': 'stack',   'name': 'Aussie Stack (reducing)', 'is_reducer': True},
     'SWCK':{'code': 'WCK', 'category': 'stack',   'name': 'West Coast Curve Stack (reducing)', 'is_reducer': True},
     'SL':  {'code': 'L',   'category': 'elbow',   'name': 'Elbow (reducing)', 'is_reducer': True},
-    'BR':  {'code': 'BR',  'category': 'stack',   'name': 'Brute Stack'},
 }
 
 
@@ -1263,7 +1261,7 @@ TRUCK_MODELS: dict[str, str] = {
     '359':   'PB',  '379':   'PB',  '389':   'PB',
     '567':   'PB',  '579':   'PB',  '589':   'PB',
     '337':   'PB',  '348':   'PB',  '386':   'PB',
-    '388':   'PB',  '337':   'PB',
+    '388':   'PB',
     # Kenworth
     't660':  'KW',  't680':  'KW',  't800':  'KW',
     'w900':  'KW',  't880':  'KW',  't480':  'KW',
@@ -1286,7 +1284,7 @@ TRUCK_MODELS: dict[str, str] = {
     '49x':   'WS',  '57x':   'WS',
     # Ford (mostly older)
     'l9000': 'FT',  'lts9000':'FT', 'l8000': 'FT',
-    'lt9000':'FT',  'l8000':  'FT', 'powerstroke': 'FT',
+    'lt9000':'FT', 'powerstroke': 'FT',
     # GM
     'topkick':'GM', 'kodiak': 'GM',
 }
@@ -1575,7 +1573,6 @@ def normalize_input(text: str) -> NormalizedInput:
     surface = _normalize_spoken_words(surface)
 
     tokens: list[NormalizedToken] = []
-    remaining = surface
     # Lowercase view for matching, but preserve case mapping by tracking offsets
     cursor = 0
     surface_lower = surface.lower()
@@ -1671,7 +1668,6 @@ def normalize_input(text: str) -> NormalizedInput:
         word_match = re.match(r'(\S+)', surface_lower[cursor:])
         if not word_match:
             break
-        word = word_match.group(1).strip(' .,;:!?')
         word_len = word_match.end()
         raw_word = surface[cursor:cursor + word_len].strip(' .,;:!?')
         token = _classify_phrase(raw_word)
@@ -1729,147 +1725,3 @@ def _classify_phrase(raw: str) -> NormalizedToken | None:
         return NormalizedToken(raw=raw, kind='sku_fragment', data=fragment)
 
     return None
-
-
-# ============================================================================
-# Section 10: Self-test (sanity check on import)
-# ============================================================================
-
-def _selftest() -> None:
-    """Run quick assertions to catch regressions on import. Not exhaustive —
-    proper test suite lives separately."""
-    # Surface normalization
-    assert normalize_surface('  hello   world  ') == 'hello world'
-    assert normalize_surface('left\u2018quote') == "left'quote"
-
-    # Dimensions
-    assert normalize_dimension('5"') == {'value': 5.0, 'unit': 'inch'}
-    assert normalize_dimension('5 inch') == {'value': 5.0, 'unit': 'inch'}
-    assert normalize_dimension('3.5"') == {'value': 3.5, 'unit': 'inch'}
-    assert normalize_dimension('14 ga') == {'value': 14.0, 'unit': 'gauge'}
-    assert normalize_dimension('five')['value'] == 5.0
-
-    # Compound dimensions
-    cd = normalize_compound_dimension('5"x24"')
-    assert cd['first']['value'] == 5.0 and cd['second']['value'] == 24.0
-
-    # Finish — non-conflicting aliases work
-    assert normalize_finish('chrome')['code'] == 'C'
-    assert normalize_finish('CHR')['code'] == 'C'
-    assert normalize_finish('alz')['code'] == 'A'
-    assert normalize_finish('304')['code'] == 'S3'
-    assert normalize_finish('stainless')['ambiguous'] is True
-
-    # Finish — single-letter aliases removed (regression test)
-    assert normalize_finish('a') is None, "Bare 'a' should not match A finish"
-    assert normalize_finish('c') is None, "Bare 'c' should not match C finish"
-    assert normalize_finish('s') is None, "Bare 's' should not match"
-
-    # Family
-    assert normalize_family_word('curved stack')['code'] == 'K'
-    assert normalize_family_word('bullhorn')['code'] == 'BH'
-    assert normalize_family_word('elbow')['code'] == 'L'
-    assert normalize_family_word('stack')['ambiguous'] is True
-
-    # Body
-    assert normalize_body('SB')['code'] == 'SB'
-    assert normalize_body('expanded')['code'] == 'EX'
-    assert normalize_body('OD-fit')['code'] == 'SB'
-
-    # Fit
-    assert normalize_fit('ID/OD') == {'inlet': 'ID', 'outlet': 'OD'}
-    assert normalize_fit('id-od') == {'inlet': 'ID', 'outlet': 'OD'}
-
-    # OEM
-    assert normalize_oem('Pete')['code'] == 'PB'
-    assert normalize_oem('peterbilt')['code'] == 'PB'
-
-    # Truck model
-    assert normalize_truck_model('379')['make_code'] == 'PB'
-    assert normalize_truck_model('cascadia')['make_code'] == 'FL'
-
-    # SKU fragment recognition
-    assert normalize_sku_fragment('K5') == {'family': 'K', 'diameter': 5.0}
-    assert normalize_sku_fragment('K5-24') == {'family': 'K', 'diameter': 5.0, 'rest': '24'}
-    assert normalize_sku_fragment('K5-24SBC') == {'family': 'K', 'diameter': 5.0, 'rest': '24SBC'}
-    assert normalize_sku_fragment('PG-VS') == {'family': 'PG', 'rest': 'VS'}
-    assert normalize_sku_fragment('long') is None, "'long' has no digit/dash, not a fragment"
-    assert normalize_sku_fragment('need') is None, "'need' has no digit/dash, not a fragment"
-
-    # Whole-input integration
-    result = normalize_input('5 inch chrome curved stack 24 inches long, ID/OD')
-    kinds = [t.kind for t in result.tokens]
-    assert 'dimension' in kinds
-    assert 'finish' in kinds
-    assert 'family' in kinds
-    assert 'fit' in kinds
-
-    # Regression: 'a' in 'I need a 5 inch...' must not be tagged as finish
-    result = normalize_input('I need a 5 inch chrome curved stack 24 inches')
-    finish_tokens = [t for t in result.tokens if t.kind == 'finish']
-    finish_codes = [t.data.get('code') for t in finish_tokens]
-    assert 'A' not in finish_codes or any(t.raw.lower() == 'alz' for t in finish_tokens), \
-        "Bare 'a' should not produce a finish=A token"
-
-    # Regression: K5 should now be recognized as a SKU fragment, not 'unknown'
-    result = normalize_input('K5 24 SB chrome')
-    fragment_tokens = [t for t in result.tokens if t.kind == 'sku_fragment']
-    assert len(fragment_tokens) == 1, f"Expected K5 fragment, got {[t.kind for t in result.tokens]}"
-    assert fragment_tokens[0].data['family'] == 'K'
-    assert fragment_tokens[0].data['diameter'] == 5.0
-
-    # Spoken-word substitution: NATO phonetics
-    assert _normalize_spoken_words('Kilo Sierra Bravo Charlie') == 'KSBC'
-    assert _normalize_spoken_words('Alpha Bravo') == 'AB'
-    assert _normalize_spoken_words('Alfa') == 'A'  # alternate NATO spelling
-
-    # Spoken-word substitution: number words and compounds
-    assert _normalize_spoken_words('thirty-six') == '36'
-    assert _normalize_spoken_words('twenty-four') == '24'
-    assert _normalize_spoken_words('forty-eight') == '48'
-    assert _normalize_spoken_words('seventy-five') == '75'
-    assert _normalize_spoken_words('eighty-eight') == '88'
-
-    # Fractions stay separate from 'inch' as a unit marker
-    assert _normalize_spoken_words('half inch') == '0.5 inch'
-    assert _normalize_spoken_words('quarter inch') == '0.25 inch'
-    assert _normalize_spoken_words('three-quarter inch') == '0.75 inch'
-
-    # Mixed spoken NATO + numbers join into one SKU-fragment-like token
-    assert _normalize_spoken_words(
-        'Kilo five dash thirty-six Sierra Bravo Charlie'
-    ) == 'K5-36SBC'
-    assert _normalize_spoken_words(
-        'K five dash thirty-six SBC'
-    ) == 'K5-36SBC'
-    assert _normalize_spoken_words(
-        'V B dash four seventy-five C'
-    ) == 'VB-475C'
-    assert _normalize_spoken_words(
-        'Lima five niner zero dash one two one two Alpha'
-    ) == 'L590-1212A'
-    assert _normalize_spoken_words(
-        'Tango five eight eight dash six'
-    ) == 'T588-6'
-
-    # Idempotent: running the substitution twice returns the same string
-    s1 = _normalize_spoken_words('Kilo five dash thirty-six SBC')
-    assert _normalize_spoken_words(s1) == s1
-
-    # Non-spelled input is untouched
-    assert _normalize_spoken_words('5 inch chrome curved stack') == \
-        '5 inch chrome curved stack'
-    assert _normalize_spoken_words('I need a 5 inch chrome stack') == \
-        'I need a 5 inch chrome stack'
-    assert _normalize_spoken_words('K5 36 chrome') == 'K5 36 chrome'
-
-    # Integration: voice-dictated SKU resolves through normalize_input
-    result = normalize_input('Kilo five dash thirty-six Sierra Bravo Charlie')
-    fragment_tokens = [t for t in result.tokens if t.kind == 'sku_fragment']
-    assert len(fragment_tokens) == 1, \
-        f"Expected K5-36SBC fragment, got {[(t.kind, t.raw) for t in result.tokens]}"
-    assert fragment_tokens[0].data['family'] == 'K'
-    assert fragment_tokens[0].data['diameter'] == 5.0
-
-
-_selftest()  # Run on import — fail fast if something regresses

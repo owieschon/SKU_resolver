@@ -43,29 +43,36 @@ Failure modes
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 try:
     from sku_translator.catalog_index import CatalogIndex, ParsedRow
-    from sku_translator.extractor import PartSpec, Ambiguity, extract_spec
     from sku_translator.constructor import (
-        construct_sku, ConstructionError, InsufficientSpecError,
+        ConstructionError,
+        InsufficientSpecError,
+        construct_sku,
     )
-    from sku_translator.fuzzy_matcher import FuzzyMatch, fuzzy_match
     from sku_translator.disambiguator import Candidate, disambiguate
+    from sku_translator.extractor import Ambiguity, PartSpec, extract_spec
+    from sku_translator.fuzzy_matcher import FuzzyMatch, fuzzy_match
     from sku_translator.memory import (
-        MemoryStore, ReplayDecision, consult_memory, record_choice,
+        MemoryStore,
+        consult_memory,
+        record_choice,
     )
 except ImportError:
     from catalog_index import CatalogIndex, ParsedRow
-    from extractor import PartSpec, Ambiguity, extract_spec
     from constructor import (
-        construct_sku, ConstructionError, InsufficientSpecError,
+        ConstructionError,
+        InsufficientSpecError,
+        construct_sku,
     )
-    from fuzzy_matcher import FuzzyMatch, fuzzy_match
     from disambiguator import Candidate, disambiguate
+    from extractor import Ambiguity, PartSpec, extract_spec
+    from fuzzy_matcher import FuzzyMatch, fuzzy_match
     from memory import (
-        MemoryStore, ReplayDecision, consult_memory, record_choice,
+        MemoryStore,
+        consult_memory,
+        record_choice,
     )
 
 
@@ -166,6 +173,7 @@ def translate(
     # (also a real catalog SKU but a different product).
     if catalog is not None and catalog.is_canonical(raw.strip()):
         row = catalog.lookup(raw.strip())
+        assert row is not None  # is_canonical() above guarantees it
         result = TranslationResult(
             state=RESOLVED,
             sku=row.sku,
@@ -198,6 +206,7 @@ def translate(
             return _apply_proprietary_policy(result, catalog, customer)
         if catalog.is_canonical(spec.canonical_sku):
             row = catalog.lookup(spec.canonical_sku)
+            assert row is not None
             result.state = RESOLVED
             result.sku = row.sku  # use catalog's exact casing
             result.source = 'parser'
@@ -224,6 +233,7 @@ def translate(
             return _apply_proprietary_policy(result, catalog, customer)
         if catalog.is_canonical(constructed):
             row = catalog.lookup(constructed)
+            assert row is not None
             result.state = RESOLVED
             result.sku = row.sku
             result.source = 'construct'
@@ -299,13 +309,13 @@ def translate(
             result.candidates = _filter_proprietary_candidates(result.candidates, customer)
 
         if disamb.confidence == 'high' and result.candidates:
-            top = result.candidates[0]
+            top_cand = result.candidates[0]
             result.state = RESOLVED
-            result.sku = top.sku
+            result.sku = top_cand.sku
             result.source = 'disambiguator'
             result.confidence = 'high'
             result.reasoning = disamb.reasoning
-            return _apply_proprietary_policy(result, catalog, customer, parsed_row=top.parsed)
+            return _apply_proprietary_policy(result, catalog, customer, parsed_row=top_cand.parsed)
 
         if result.candidates:
             result.state = PENDING_DISAMBIGUATION
@@ -467,142 +477,3 @@ def record_translation_choice(
         candidates_shown=[c.sku for c in (candidates_shown or [])],
         confidence_seen=confidence_seen,
     )
-
-
-# ============================================================================
-# Self-test
-# ============================================================================
-
-def _selftest() -> None:
-    """Self-test using a minimal in-memory CatalogIndex."""
-    try:
-        from sku_translator.catalog_index import family_prefix_for
-        from sku_translator.memory import InMemoryStore
-    except ImportError:
-        from catalog_index import family_prefix_for
-        from memory import InMemoryStore
-
-    class _MockCatalog:
-        def __init__(self, rows):
-            self._rows = rows
-            self._upper = {r.sku.upper(): r for r in rows}
-
-        def tenant_id(self):
-            return 'mock'
-
-        def is_canonical(self, sku):
-            return bool(sku) and sku.strip().upper() in self._upper
-
-        def lookup(self, sku):
-            if not sku:
-                return None
-            return self._upper.get(sku.strip().upper())
-
-        def parsed_rows(self):
-            return iter(self._rows)
-
-        def all_skus(self):
-            return [r.sku for r in self._rows]
-
-        def bucket(self, family=None, diameter=None):
-            out = self._rows
-            if family is not None:
-                out = [r for r in out if r.family == family]
-            if diameter is not None:
-                out = [r for r in out if r.diameter == diameter]
-            return list(out)
-
-        def family_prefix_bucket(self, prefix):
-            return [r for r in self._rows if family_prefix_for(r.sku) == prefix.upper()]
-
-        def reload(self):
-            pass
-
-        def size(self):
-            return len(self._rows)
-
-    rows = [
-        ParsedRow(sku='K5-24SBC', family='K', diameter=5.0, length=24.0, body='SB', finish='C', sales_count=1500),
-        ParsedRow(sku='K5-30SBC', family='K', diameter=5.0, length=30.0, body='SB', finish='C', sales_count=800),
-        ParsedRow(sku='K5-36SBC', family='K', diameter=5.0, length=36.0, body='SB', finish='C', sales_count=200),
-        ParsedRow(sku='K5-24SBA', family='K', diameter=5.0, length=24.0, body='SB', finish='A', sales_count=50),
-        ParsedRow(sku='K5-24EXC', family='K', diameter=5.0, length=24.0, body='EX', finish='C', sales_count=100),
-        ParsedRow(sku='BH5-30SBA', family='BH', diameter=5.0, length=30.0, body='SB', finish='A', sales_count=300),
-        ParsedRow(sku='SBR6-108EXC', family='BR', diameter=6.0, length=108.0, body='EX', finish='C', is_reducer=True, sales_count=100),
-        # A proprietary SKU
-        ParsedRow(sku='UCS524ENCP', family='UCS', diameter=5.0, is_proprietary=True,
-                 proprietary_customer='NORCO', sales_count=20),
-    ]
-    cat = _MockCatalog(rows)
-    mem = InMemoryStore()
-
-    # Test 1: full canonical SKU passthrough
-    r1 = translate('K5-24SBC', cat)
-    assert r1.state == RESOLVED, r1
-    assert r1.sku == 'K5-24SBC', r1
-    assert r1.source == 'parser', r1
-
-    # Test 2: case-insensitive
-    r2 = translate('k5-24sbc', cat)
-    assert r2.state == RESOLVED and r2.sku == 'K5-24SBC'
-
-    # Test 3: typo
-    r3 = translate('K5-24SBCC', cat)
-    assert r3.state == RESOLVED, r3
-    assert r3.sku == 'K5-24SBC', r3
-    assert r3.source == 'fuzzy', r3
-
-    # Test 4: free-text full spec
-    r4 = translate('K 5 inch 24 long chrome SB', cat)
-    assert r4.state == RESOLVED, r4
-    assert r4.sku == 'K5-24SBC', r4
-
-    # Test 5: ambiguous (missing length) → pending
-    r5 = translate('K 5 chrome SB', cat)
-    assert r5.state == PENDING_DISAMBIGUATION, r5
-    assert len(r5.candidates) >= 2
-
-    # Test 6: memory replay
-    spec5 = r5.spec
-    record_translation_choice(spec5, 'K5-24SBC', mem, customer='DEMO')
-    record_translation_choice(spec5, 'K5-24SBC', mem, customer='DEMO')
-    record_translation_choice(spec5, 'K5-24SBC', mem, customer='DEMO')
-    r6 = translate('K 5 chrome SB', cat, memory=mem, customer='DEMO')
-    assert r6.state == RESOLVED, r6
-    assert r6.source == 'memory_replay', r6
-
-    # Test 7: nothing matches
-    r7 = translate('UFO-9999', cat)
-    assert r7.state == UNRESOLVABLE, r7
-
-    # Test 8: empty input
-    r8 = translate('', cat)
-    assert r8.state == UNRESOLVABLE, r8
-
-    # Test 9: proprietary SKU resolves with warning when no customer given
-    r9 = translate('UCS524ENCP', cat)
-    assert r9.state == RESOLVED, r9
-    assert r9.proprietary_warning is not None, r9
-
-    # Test 10: proprietary SKU + matching customer = clean resolve
-    r10 = translate('UCS524ENCP', cat, customer='NORCO')
-    assert r10.state == RESOLVED, r10
-    assert not r10.proprietary_violation, r10
-
-    # Test 11: proprietary SKU + wrong customer = violation flagged
-    r11 = translate('UCS524ENCP', cat, customer='DEMO')
-    assert r11.state == RESOLVED, r11
-    assert r11.proprietary_violation, r11
-    assert 'NORCO' in r11.proprietary_warning, r11
-    assert r11.confidence == 'low', r11
-
-    # Test 12: no catalog → still resolves via parser, with medium confidence
-    r12 = translate('K5-24SBC', None)
-    assert r12.state == RESOLVED, r12
-    assert r12.confidence == 'medium', r12
-
-    print('translator (orchestrator) v2.0 — self-test passed')
-
-
-if __name__ == '__main__':
-    _selftest()

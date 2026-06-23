@@ -5,14 +5,13 @@ PII is scrubbed, sessions re-lock and reject forged tokens.
 """
 from __future__ import annotations
 
-import json
-
-from gateway import Channel, EventType, NEUTRAL_REFUSAL
-from gateway.session import (
-    SessionManager, VerificationResult, MAX_VERIFY_ATTEMPTS,
-    IDLE_RELOCK_SECONDS,
-)
 from gateway_fixtures import build_gateway
+
+from gateway import NEUTRAL_REFUSAL, Channel, EventType
+from gateway.session import (
+    IDLE_RELOCK_SECONDS,
+    MAX_VERIFY_ATTEMPTS,
+)
 
 
 def _open(gw, sessions, sid='S'):
@@ -71,7 +70,7 @@ def test_cross_account_pricing_refused_when_verified(tmp_path):
 
 # #11 — a bare "yes" is a WEAK signal; pricing requires stronger ground.
 def test_weak_confirmation_classified_weak(tmp_path):
-    from gateway import classify_confirmation, ConfirmationStrength
+    from gateway import ConfirmationStrength, classify_confirmation
     gw, sessions, journal, _ = build_gateway(tmp_path)
     s = classify_confirmation('yes', expected_sku='K5-24SBC', catalog=gw.catalog)
     assert s is ConfirmationStrength.WEAK

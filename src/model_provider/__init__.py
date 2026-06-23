@@ -7,15 +7,22 @@ hatch. An opinionated, self-aware routing policy picks the model per task
 comparison. CI runs ScriptedProvider — network-free, deterministic.
 """
 from model_provider.base import (
-    ModelProvider, ModelRequest, ModelResponse, ModelUnavailable,
+    ModelProvider,
+    ModelRequest,
+    ModelResponse,
+    ModelUnavailable,
 )
 from model_provider.client import LLMClient
-from model_provider.scripted import ScriptedProvider
 from model_provider.keyring import configured_providers, has_key, key_for
 from model_provider.routing import (
-    ModelChoice, TASK_POLICY, TIER_MODELS, UnknownProvider, policy_table,
+    TASK_POLICY,
+    TIER_MODELS,
+    ModelChoice,
+    UnknownProvider,
+    policy_table,
     resolve_model,
 )
+from model_provider.scripted import ScriptedProvider
 
 
 def make_provider(name: str):

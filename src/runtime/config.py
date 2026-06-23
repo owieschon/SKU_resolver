@@ -34,13 +34,17 @@ def _now_dt():
 
 def build_gateway():
     """Construct the live Gateway. Returns (gateway, session_manager)."""
-    from sku_translator import FixtureCatalogIndex, InMemoryStore
-    from resolution import ResolutionService, catalog_content_version
     from fulfillment import load_inventory
     from gateway import (
-        Account, ConversationJournal, Gateway, InMemoryCustomerDB,
-        SessionManager, SyntheticPriceBook,
+        Account,
+        ConversationJournal,
+        Gateway,
+        InMemoryCustomerDB,
+        SessionManager,
+        SyntheticPriceBook,
     )
+    from resolution import ResolutionService, catalog_content_version
+    from sku_translator import FixtureCatalogIndex, InMemoryStore
 
     catalog_path = os.environ.get('SKU_CATALOG_PATH',
                                   str(REPO / 'data' / 'catalog.csv'))
@@ -59,8 +63,8 @@ def build_gateway():
         llm = LLMClient(provider=make_provider(provider_name),
                         cost_ledger=CostLedger(REPO / 'state' / 'cost.jsonl'),
                         now_iso=lambda: datetime.now(tz=NY).isoformat())
-        from resolution.chooser import LLMChooser
         from gateway.intent import LLMIntentRouter
+        from resolution.chooser import LLMChooser
         chooser = LLMChooser(llm)
         intent_router = LLMIntentRouter(llm)
 

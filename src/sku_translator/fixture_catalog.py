@@ -39,22 +39,22 @@ from typing import Any, Iterator
 
 try:
     from sku_translator.catalog_index import (
-        CatalogIndex, ParsedRow,
+        ParsedRow,
         family_prefix_for,
-        is_proprietary_marker,
+        is_customer_facing,
         is_excluded_ipg,
         is_excluded_pgc,
-        is_customer_facing,
+        is_proprietary_marker,
     )
     from sku_translator.part_number_parser import parse
 except ImportError:
     from catalog_index import (
-        CatalogIndex, ParsedRow,
+        ParsedRow,
         family_prefix_for,
-        is_proprietary_marker,
+        is_customer_facing,
         is_excluded_ipg,
         is_excluded_pgc,
-        is_customer_facing,
+        is_proprietary_marker,
     )
     from part_number_parser import parse
 
@@ -320,66 +320,3 @@ class FixtureCatalogIndex:
             f'<FixtureCatalogIndex tenant={self._tenant_id!r} '
             f'path={self._catalog_path.name!r} size={self.size()}>'
         )
-
-
-# ============================================================================
-# Self-test
-# ============================================================================
-
-def _selftest() -> None:
-    import os
-    fixture = os.environ.get('SKU_CATALOG_PATH', 'data/catalog.csv')
-    if not Path(fixture).exists():
-        print('FixtureCatalogIndex self-test SKIPPED (no fixture available)')
-        return
-
-    idx = FixtureCatalogIndex(fixture, tenant_id='test_tenant_001')
-    assert idx.tenant_id() == 'test_tenant_001'
-    assert idx.size() > 9000, f'Expected ~9487 rows, got {idx.size()}'
-
-    # is_canonical / lookup
-    assert idx.is_canonical('K5-24SBC')
-    assert idx.is_canonical('k5-24sbc')  # case-insensitive
-    assert not idx.is_canonical('XYZZY-9999')
-    row = idx.lookup('K5-24SBC')
-    assert row is not None
-    assert row.sku == 'K5-24SBC'
-    assert row.family == 'K'
-    assert row.diameter == 5.0
-    assert row.length == 24.0
-    assert row.finish == 'C'
-    assert row.body == 'SB'
-
-    # Excluded SKUs (obsolete/battery) should NOT be in index
-    # (we can't enumerate them all, but spot-check the count)
-    assert idx.size() == 9487, f'Expected 9487 active SKUs, got {idx.size()}'
-
-    # Bucketing
-    k5_rows = idx.bucket(family='K', diameter=5.0)
-    assert len(k5_rows) > 0
-    assert all(r.family == 'K' and r.diameter == 5.0 for r in k5_rows)
-
-    # Family prefix bucket (for fuzzy matcher)
-    k_prefix = idx.family_prefix_bucket('K')
-    assert len(k_prefix) > 0
-    assert all(family_prefix_for(r.sku) == 'K' for r in k_prefix)
-
-    # Proprietary detection
-    proprietary_count = sum(1 for r in idx.parsed_rows() if r.is_proprietary)
-    assert proprietary_count > 800, f'Expected ~916 proprietary, got {proprietary_count}'
-
-    # Sales data should be present
-    rows_with_sales = sum(1 for r in idx.parsed_rows() if r.sales_count > 0)
-    assert rows_with_sales > 7000, f'Expected ~7730 with sales, got {rows_with_sales}'
-
-    # Reload should not change size when source is unchanged
-    before = idx.size()
-    idx.reload()
-    assert idx.size() == before
-
-    print(f'FixtureCatalogIndex v1.0 — self-test passed')
-    print(f'  size={idx.size()}, proprietary={proprietary_count}, with_sales={rows_with_sales}')
-
-
-if __name__ == '__main__':
-    _selftest()

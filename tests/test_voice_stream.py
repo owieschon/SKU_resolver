@@ -8,16 +8,22 @@ from __future__ import annotations
 
 import base64
 import json
-
 import struct
 
-from gateway import (
-    SimulatedStreamingASR, SimulatedTTS, Transcript, TwilioMediaStream,
-    mulaw_decode, mulaw_encode, parse_twilio_event, run_stream_turns,
-    twilio_media_messages, twilio_mark,
-)
 from gateway_fixtures import build_gateway
 
+from gateway import (
+    SimulatedStreamingASR,
+    SimulatedTTS,
+    Transcript,
+    TwilioMediaStream,
+    mulaw_decode,
+    mulaw_encode,
+    parse_twilio_event,
+    run_stream_turns,
+    twilio_mark,
+    twilio_media_messages,
+)
 
 # --- mu-law decode (reference values; audioop is gone in 3.14) ------------------
 
@@ -98,8 +104,8 @@ def test_outbound_media_frame_builder():
     mulaw = b'\xff' * 400          # 2.5 frames of 160 bytes
     frames = twilio_media_messages(mulaw, 'MZ9')
     assert len(frames) == 3       # 160 + 160 + 80
-    import json
     import base64
+    import json
     f0 = json.loads(frames[0])
     assert f0['event'] == 'media' and f0['streamSid'] == 'MZ9'
     assert base64.b64decode(f0['media']['payload']) == b'\xff' * 160
@@ -107,7 +113,7 @@ def test_outbound_media_frame_builder():
 
 
 def test_voice_persona_accent_selects_voice_and_overrides():
-    from gateway import VoicePersona, ACCENT_VOICES
+    from gateway import ACCENT_VOICES, VoicePersona
     p = VoicePersona(name='Sam', accent='southern')
     assert p.resolved_voice_id() == ACCENT_VOICES['southern']
     assert 'Sam' in p.opening()

@@ -12,7 +12,7 @@ and a guess that looks like a label is noise. So the trace drives the questions.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)

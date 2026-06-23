@@ -4,11 +4,11 @@ with approval RESET (the re-review is the feature), and no false halts.
 from __future__ import annotations
 
 import pytest
+from harness_fixtures import make_rig, onboard
 
 from erp_harness import DriftGuard, ReviewGate, SyncHalted, acknowledge_drift
 from erp_harness.discovery import crawl_metadata, surface_fingerprint
 from erp_twin import faults
-from harness_fixtures import make_rig, onboard
 
 
 def _guard_and_rig(**kw):

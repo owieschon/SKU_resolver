@@ -30,10 +30,13 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / 'src'))
 
-from runtime.config import build_persona              # noqa: E402
-from runtime.voice_agent import (                     # noqa: E402
-    AgentSettings, build_agent_payload, create_or_update_agent,
-    load_system_prompt, validate_system_prompt,
+from runtime.config import build_persona  # noqa: E402
+from runtime.voice_agent import (  # noqa: E402
+    AgentSettings,
+    build_agent_payload,
+    create_or_update_agent,
+    load_system_prompt,
+    validate_system_prompt,
 )
 
 

@@ -5,11 +5,11 @@ A detector that has never caught a planted fault is unproven (spec §2).
 """
 from __future__ import annotations
 
+from harness_fixtures import make_rig
+
 from erp_harness import surface_fingerprint
 from erp_harness.discovery import crawl_metadata, discover
 from erp_twin import faults
-from harness_fixtures import make_rig
-
 
 # --- smoke ----------------------------------------------------------------------
 

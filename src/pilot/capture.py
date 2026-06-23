@@ -17,7 +17,7 @@ resolves — flagged in docs/PILOT_HARNESS.md as a precondition.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from observability import scrub_pii
 

@@ -22,7 +22,7 @@ subclass-failing rule passes the 2-component and fails the 3-component.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 # Minimal normalization for key<->phrase matching. Production reuses the SKU-
 # translator's tokenizer; kept local + simple here so the battery is self-contained

@@ -9,15 +9,17 @@ actually connect — not each tested in isolation.
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
+from gateway_fixtures import _shared_catalog
 
 from erp_harness import LineCatalogSource, decode_catalog_source
 from gateway import (
-    ContinuousImprovement, CorrectionStore, ShadowObserver,
+    ContinuousImprovement,
+    CorrectionStore,
+    ShadowObserver,
 )
 from resolution import ResolutionService
-from sku_translator import InMemoryStore
-from gateway_fixtures import _shared_catalog
 from runtime.app import create_app
+from sku_translator import InMemoryStore
 
 REAL_SKU = 'K5-24SBC'
 FAIL = 'do you stock the qq9zz adapter'

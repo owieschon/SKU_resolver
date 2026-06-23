@@ -15,14 +15,13 @@ import time
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from gateway_fixtures import build_gateway
 
 from gateway import Channel
 from gateway.say_guard import internal_state_tokens
-from gateway_fixtures import build_gateway
-from runtime.agent_brain import FALLBACK, SERVICE_FALLBACK
+from runtime.agent_brain import SERVICE_FALLBACK
 from runtime.custom_llm import handle_async
 from runtime.custom_llm_route import register_custom_llm
-
 
 # ============ custom-LLM endpoint (handle_async flow) =======================
 

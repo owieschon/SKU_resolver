@@ -28,7 +28,9 @@ from typing import Callable
 
 from gateway.customer_db import CustomerDB
 from gateway.models import (
-    Account, AuthorizationDecision, IdentifiedSKU, SessionState,
+    Account,
+    AuthorizationDecision,
+    SessionState,
 )
 
 MAX_VERIFY_ATTEMPTS = 5
@@ -120,7 +122,6 @@ class SessionManager:
             return VerificationResult.LOCKED, []
 
         match: Account | None = None
-        candidates: list[Account] = []
         if account_no:
             match = self.customer_db.by_number(account_no)
         elif name:

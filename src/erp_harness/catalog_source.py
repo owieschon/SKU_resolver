@@ -188,7 +188,7 @@ class ExcelCatalogSource:
         self._path, self._sheet = path, sheet
 
     def rows(self) -> list[dict]:
-        from openpyxl import load_workbook   # core dependency
+        from openpyxl import load_workbook  # core dependency
         wb = load_workbook(str(self._path), read_only=True, data_only=True)
         ws = wb[self._sheet] if self._sheet else wb.active
         matrix = [list(row) for row in ws.iter_rows(values_only=True)]

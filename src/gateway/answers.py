@@ -7,14 +7,18 @@ second layer independent of the session gate (#10, defense in depth).
 """
 from __future__ import annotations
 
+from fulfillment import (
+    CalendarHorizonError,
+    InventoryRecord,
+    PartialPolicy,
+    ship_date,
+)
 from gateway.models import (
-    AuthorizationDecision, AvailabilityAnswer, PriceAnswer,
+    AuthorizationDecision,
+    AvailabilityAnswer,
+    PriceAnswer,
 )
 from gateway.pricebook import PriceBook
-from fulfillment import (
-    InventoryRecord, PartialPolicy, ship_date, CalendarHorizonError,
-)
-
 
 _MONTHS = ('January', 'February', 'March', 'April', 'May', 'June', 'July',
            'August', 'September', 'October', 'November', 'December')

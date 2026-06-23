@@ -8,14 +8,18 @@ Onboarding is done when the downstream guarantee survives the new data path.
 from __future__ import annotations
 
 import pytest
+from harness_fixtures import BC, make_rig
 
 from erp_harness import (
-    DriftGuard, HeuristicExplorer, ReviewGate, SyncHalted,
-    UnapprovedProfileError, run_onboarding, sync_items,
+    DriftGuard,
+    HeuristicExplorer,
+    ReviewGate,
+    SyncHalted,
+    UnapprovedProfileError,
+    run_onboarding,
+    sync_items,
 )
-from erp_harness.discovery import crawl_metadata
 from erp_twin import faults
-from harness_fixtures import BC, make_rig
 
 ITEMS = 300
 
@@ -41,7 +45,7 @@ def test_e2e_golden_path_translator_identity_holds_on_synced_catalog():
 
     # THE acceptance criterion: identity through the full translator,
     # against adapter-synced data, for every synced SKU.
-    from sku_translator import translate, InMemoryStore, RESOLVED
+    from sku_translator import RESOLVED, InMemoryStore, translate
     mem = InMemoryStore()
     misses = []
     for sku in synced.all_skus():

@@ -7,9 +7,9 @@ golden table in tests/test_ship_date_golden.py IS the business-rule spec.
 """
 from fulfillment.calendar import (
     CALENDAR_HORIZON,
-    CalendarHorizonError,
     FACILITY_TZ,
     HOLIDAYS,
+    CalendarHorizonError,
     add_business_days,
     is_business_day,
     normalize_receipt,

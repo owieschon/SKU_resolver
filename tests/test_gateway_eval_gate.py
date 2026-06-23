@@ -9,9 +9,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from gateway import Channel
-from gateway.session import MAX_VERIFY_ATTEMPTS
 from gateway_fixtures import build_gateway
+
+from gateway import Channel
 
 CASES = json.loads((Path(__file__).resolve().parent.parent /
                     'data' / 'gateway_eval_cases.json').read_text())

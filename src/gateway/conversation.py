@@ -19,7 +19,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from gateway.conversation_state import (
-    AccountState, ConversationState, Fact, FactState, FactType, IdentityState,
+    AccountState,
+    ConversationState,
+    Fact,
+    FactState,
+    FactType,
+    IdentityState,
     PartContext,
 )
 from gateway.disclosure_gate import DEFAULT_HORIZONS, Horizons, discloseable

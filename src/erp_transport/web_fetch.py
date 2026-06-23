@@ -29,7 +29,7 @@ def playwright_fetcher(url: str, *, timeout_ms: int = 30000) -> str:
     """Render a JS-heavy page and return the settled DOM HTML. Needs the [web]
     extra and `playwright install chromium`; not exercised in CI."""
     try:
-        from playwright.sync_api import sync_playwright   # pragma: no cover
+        from playwright.sync_api import sync_playwright  # pragma: no cover
     except ImportError as e:   # pragma: no cover - env-dependent
         raise RuntimeError("playwright_fetcher needs the [web] extra: "
                            "pip install '.[web]' && playwright install chromium"

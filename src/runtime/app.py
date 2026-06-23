@@ -22,19 +22,21 @@ from typing import Dict, Tuple
 
 from gateway import Channel, tools_manifest
 from gateway.connector import _response_to_dict
-from gateway.spoken import to_spoken
 from gateway.say_guard import safe_voice_say
+from gateway.spoken import to_spoken
 from gateway.voice import transcript_is_usable
-from runtime import twiml, twilio_sig
+from runtime import twilio_sig, twiml
 from runtime.config import (
-    build_gateway, build_improvement, build_persona, build_streaming_asr,
+    build_gateway,
+    build_improvement,
+    build_persona,
+    build_streaming_asr,
     build_tts,
 )
 
 
 def create_app(*, streaming_asr=None, tts=None, persona=None, improvement=None):
-    from fastapi import FastAPI, Form, Request, Response, WebSocket
-    from fastapi import WebSocketDisconnect
+    from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
     from fastapi.responses import JSONResponse
 
     app = FastAPI(title='SKU Resolution Gateway', version='1.0.0')
@@ -191,8 +193,7 @@ def create_app(*, streaming_asr=None, tts=None, persona=None, improvement=None):
         frames) for full duplex, and also emits a JSON 'assistant' event for
         transcript/supervisor use. The gateway is still the brain — every gate
         applies before a single audio frame is synthesized."""
-        from gateway.voice_stream import (
-            TwilioMediaStream, twilio_media_messages, twilio_mark)
+        from gateway.voice_stream import TwilioMediaStream, twilio_mark, twilio_media_messages
         await ws.accept()
         stream = TwilioMediaStream()
         session = None
@@ -282,8 +283,9 @@ def create_app(*, streaming_asr=None, tts=None, persona=None, improvement=None):
 
     @app.post('/webhook')
     async def webhook(request: Request):
-        from gateway.connector import WebhookConnector
         import time
+
+        from gateway.connector import WebhookConnector
         secret = os.environ.get('SKU_WEBHOOK_SECRET', 'dev-webhook-secret').encode()
         conn = WebhookConnector(gateway=gateway, secret=secret,
                                 now_fn=time.time)

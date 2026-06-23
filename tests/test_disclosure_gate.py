@@ -11,10 +11,17 @@ account-scoping and the §8 pricing-unreadable interim, which fall out of the ga
 from __future__ import annotations
 
 from gateway.conversation_state import (
-    AccountState, Fact, FactType, IdentityState, PartContext,
+    AccountState,
+    Fact,
+    FactType,
+    IdentityState,
+    PartContext,
 )
 from gateway.disclosure_gate import (
-    DEFAULT_HORIZONS, Horizons, discloseable, fresh, precondition_met,
+    Horizons,
+    discloseable,
+    fresh,
+    precondition_met,
 )
 
 NOW = 1_000_000.0

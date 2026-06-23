@@ -7,10 +7,15 @@ from __future__ import annotations
 import pytest
 
 from model_provider import (
-    ScriptedProvider, LLMClient, ModelUnavailable, TIER_MODELS, UnknownProvider,
-    configured_providers, has_key, policy_table, resolve_model,
+    LLMClient,
+    ModelUnavailable,
+    ScriptedProvider,
+    UnknownProvider,
+    configured_providers,
+    has_key,
+    policy_table,
+    resolve_model,
 )
-
 
 # ── routing policy (the system's opinion, enforced-with-override) ────────────
 

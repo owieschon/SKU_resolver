@@ -26,7 +26,7 @@ detector proposes; a misfire there mistags everything downstream).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from pilot.capture import RawCall, ScrubbedCall, scrub_call
 from pilot.decision_point import DecisionPoint

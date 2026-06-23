@@ -4,11 +4,14 @@ come from what the enforcer observed, never from bypassing it.
 """
 from __future__ import annotations
 
-from erp_harness.probes import (
-    DEFERRED_EXPERIMENTS, probe_posting_queue, probe_throttle, run_all,
-)
 from harness_fixtures import make_rig
 
+from erp_harness.probes import (
+    DEFERRED_EXPERIMENTS,
+    probe_posting_queue,
+    probe_throttle,
+    run_all,
+)
 
 # --- smoke ----------------------------------------------------------------------
 

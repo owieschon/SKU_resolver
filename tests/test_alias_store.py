@@ -10,10 +10,27 @@ import dataclasses
 import pytest
 
 from gateway.alias_store import (
-    ACTIVE, AWAITING_RELEASE, CONTESTED, DORMANT, PROPOSED, RETIRED, STALE, Alias,
-    AliasParams, may_promote, mark_contested, on_catalog_churn, on_confirm,
-    on_contradicting_correction, on_disuse_window, on_failed_live_lookup, on_hit,
-    propose, release, resolution_mode, stage_for_release, wallclock_floor_sweep,
+    ACTIVE,
+    AWAITING_RELEASE,
+    CONTESTED,
+    DORMANT,
+    PROPOSED,
+    RETIRED,
+    STALE,
+    AliasParams,
+    mark_contested,
+    may_promote,
+    on_catalog_churn,
+    on_confirm,
+    on_contradicting_correction,
+    on_disuse_window,
+    on_failed_live_lookup,
+    on_hit,
+    propose,
+    release,
+    resolution_mode,
+    stage_for_release,
+    wallclock_floor_sweep,
 )
 
 P = AliasParams()
@@ -200,8 +217,9 @@ def test_autonomous_strong_heal_cannot_auto_release_via_correction_store():
     """§7: A strong-heal (rep_said_sku) through propose_correction lands as
     PROPOSED with confidence 0.55 — NOT ACTIVE. The CorrectionStore has no
     path to auto-release. Human release() is the only way."""
-    from gateway.shadow import CorrectionStore, _norm
     from gateway_fixtures import _shared_catalog
+
+    from gateway.shadow import CorrectionStore
     cat, _ = _shared_catalog()
     corr = CorrectionStore(cat)
     a = corr.propose_correction('qq9zz adapter', 'K5-24SBC',

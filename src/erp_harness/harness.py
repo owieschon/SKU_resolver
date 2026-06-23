@@ -18,14 +18,19 @@ from erp_harness.enforcer import BudgetExhausted, SafetyEnforcer
 from erp_harness.explorer import Explorer
 from erp_harness.gaps import CANONICAL_CONTRACT, classify_unmapped
 from erp_harness.models import (
-    ContractField, ERPDescriptor, InvariantViolation, MappingState,
-    MissingGrantError, PermissionsManifest, SurfaceProfile, TenantERPProfile,
+    ContractField,
+    ERPDescriptor,
+    InvariantViolation,
+    MappingState,
+    MissingGrantError,
+    PermissionsManifest,
+    SurfaceProfile,
+    TenantERPProfile,
 )
 from erp_harness.probes import run_all as run_probes
 from erp_harness.profile import build_profile
 from erp_harness.recon import generate_manifest
 from erp_harness.verification import verify_mapping
-
 from observability import set_attr, tracer
 
 

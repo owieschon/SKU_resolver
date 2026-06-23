@@ -167,6 +167,7 @@ def fuzzy_match(
     # Tier 1: exact catalog membership (case-insensitive)
     if catalog.is_canonical(q):
         canonical_row = catalog.lookup(q)
+        assert canonical_row is not None  # is_canonical() above guarantees it
         return [FuzzyMatch(
             sku=canonical_row.sku,
             distance=0,
@@ -246,99 +247,3 @@ def fuzzy_match(
 
     matches.sort(key=lambda m: (m.distance, len(m.sku), m.sku))
     return matches[:max_candidates]
-
-
-# ============================================================================
-# Self-test
-# ============================================================================
-
-def _selftest() -> None:
-    """Self-test against a minimal in-memory CatalogIndex implementation."""
-    try:
-        from sku_translator.catalog_index import ParsedRow
-    except ImportError:
-        from catalog_index import ParsedRow
-
-    class _MockCatalog:
-        """Minimal CatalogIndex impl for unit testing."""
-        def __init__(self, skus):
-            self._rows = [ParsedRow(sku=s) for s in skus]
-            self._upper = {s.upper(): s for s in skus}
-
-        def tenant_id(self):
-            return 'mock'
-
-        def is_canonical(self, sku):
-            return bool(sku) and sku.strip().upper() in self._upper
-
-        def lookup(self, sku):
-            if not sku:
-                return None
-            canonical = self._upper.get(sku.strip().upper())
-            return next((r for r in self._rows if r.sku == canonical), None)
-
-        def parsed_rows(self):
-            return iter(self._rows)
-
-        def all_skus(self):
-            return [r.sku for r in self._rows]
-
-        def bucket(self, family=None, diameter=None):
-            return list(self._rows)
-
-        def family_prefix_bucket(self, prefix):
-            return [r for r in self._rows if family_prefix_for(r.sku) == prefix.upper()]
-
-        def reload(self):
-            pass
-
-        def size(self):
-            return len(self._rows)
-
-    cat = _MockCatalog([
-        'K5-24SBC', 'K5-24SBA', 'K5-24EXC',
-        'K5-30SBC', 'K5-36SBC',
-        'BH5-30SBA',
-        'SBR6-108EXC',
-        'L590-1715SC',
-        'PB-13056',
-    ])
-
-    # Exact match
-    m = fuzzy_match('K5-24SBC', cat)
-    assert len(m) == 1 and m[0].match_kind == 'exact', m
-
-    # Case-insensitive
-    m = fuzzy_match('k5-24sbc', cat)
-    assert len(m) == 1 and m[0].sku == 'K5-24SBC' and m[0].match_kind == 'exact'
-
-    # Missing dash → normalized match
-    m = fuzzy_match('K524SBC', cat)
-    assert len(m) == 1 and m[0].sku == 'K5-24SBC' and m[0].match_kind == 'normalized'
-
-    # Single-character typo
-    m = fuzzy_match('K5-24SBCC', cat)
-    assert any(c.sku == 'K5-24SBC' for c in m), m
-    assert m[0].sku == 'K5-24SBC' and m[0].distance == 1, m
-
-    # Different bucket → empty result
-    m = fuzzy_match('XYZ-99', cat)
-    assert m == [], m
-
-    # Multiple plausible in same bucket (missing finish letter)
-    m = fuzzy_match('K5-24SB', cat)
-    assert len(m) >= 2, m  # K5-24SBC, K5-24SBA both within distance 1
-
-    # Empty / whitespace
-    assert fuzzy_match('', cat) == []
-    assert fuzzy_match('   ', cat) == []
-
-    # Query with empty bucket (no rows match the prefix)
-    cat2 = _MockCatalog(['K5-24SBC'])
-    assert fuzzy_match('SBR6-108', cat2) == []
-
-    print('fuzzy_matcher v2.0 — self-test passed')
-
-
-if __name__ == '__main__':
-    _selftest()

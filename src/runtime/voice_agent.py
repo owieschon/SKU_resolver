@@ -350,8 +350,9 @@ def _post(url: str, payload: dict, *, api_key: str, method: str = 'POST') -> dic
     req = urllib.request.Request(url, data=data, method=method, headers={
         'xi-api-key': api_key, 'Content-Type': 'application/json'})
     try:
-        import certifi
         import ssl
+
+        import certifi
         ctx = ssl.create_default_context(cafile=certifi.where())
     except Exception:
         ctx = None

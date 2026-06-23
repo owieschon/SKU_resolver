@@ -19,25 +19,31 @@ import re
 from dataclasses import dataclass, field
 from typing import Callable
 
-from resolution import ResolutionService
-
-from gateway.answers import (
-    PricingRefused, availability, pricing,
-)
-from gateway.identification import (
-    classify_confirmation, identify, looks_like_anaphora,
-)
 from gateway import escalation
+from gateway.answers import (
+    PricingRefused,
+    availability,
+    pricing,
+)
 from gateway.conversation import Conversation
 from gateway.conversation_state import Fact, FactType
 from gateway.disclosure_gate import Horizons
+from gateway.identification import (
+    classify_confirmation,
+    identify,
+    looks_like_anaphora,
+)
 from gateway.journal import ConversationJournal, EventType
 from gateway.models import (
-    Candidate, Channel, ConfirmationStrength, TurnResponse,
+    Candidate,
+    Channel,
+    ConfirmationStrength,
+    TurnResponse,
 )
 from gateway.pricebook import PriceBook
-from gateway.session import SessionManager, VerificationResult, NEUTRAL_REFUSAL
+from gateway.session import NEUTRAL_REFUSAL, SessionManager, VerificationResult
 from gateway.spoken import spoken_description, to_spoken
+from resolution import ResolutionService
 
 _PRICE_RE = re.compile(r'\b(price|cost|how much|quote|pricing)\b', re.I)
 _AVAIL_RE = re.compile(r'\b(in stock|available|availability|lead time|'

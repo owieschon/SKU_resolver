@@ -28,21 +28,19 @@ than smoothed over.
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-
-from sku_translator import (
-    translate,
-    RESOLVED,
-    PENDING_DISAMBIGUATION,
-    UNRESOLVABLE,
-)
-from sku_translator.catalog_index import CatalogIndex
-
-from resolution.retrieval import BM25CatalogRetriever, RetrievedCandidate
 
 from observability import set_attr, tracer
 from observability.telemetry import register_structured
+from resolution.retrieval import BM25CatalogRetriever
+from sku_translator import (
+    PENDING_DISAMBIGUATION,
+    RESOLVED,
+    UNRESOLVABLE,
+    translate,
+)
+from sku_translator.catalog_index import CatalogIndex
 
 # Declare the resolution-layer scalar attributes as structured (pass-through,
 # not scrubbed) — they are labels we own, never free text.

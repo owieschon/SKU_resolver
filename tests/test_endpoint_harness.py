@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 
 from gateway_fixtures import build_gateway
+
 from runtime.agent_brain import FALLBACK, GROUNDING_FALLBACK
 from runtime.endpoint_harness import run_turn
 

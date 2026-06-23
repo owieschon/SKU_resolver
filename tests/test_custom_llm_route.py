@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -97,9 +96,9 @@ def test_stream_tool_call_finishes_with_tool_calls_reason():
         {'role': 'user', 'content': 'is K5-24SBC in stock?'}]})
     text = r.text
     assert 'tool_calls' in text and 'data: [DONE]' in text
-    finishes = [json.loads(l[6:])['choices'][0]['finish_reason']
-                for l in text.splitlines()
-                if l.startswith('data: ') and l[6:].strip() != '[DONE]']
+    finishes = [json.loads(ln[6:])['choices'][0]['finish_reason']
+                for ln in text.splitlines()
+                if ln.startswith('data: ') and ln[6:].strip() != '[DONE]']
     assert 'tool_calls' in finishes
 
 
@@ -159,7 +158,7 @@ def test_per_route_latency_ledger_is_written(tmp_path, monkeypatch):
     monkeypatch.setenv('CUSTOM_LLM_TRACE_LOG', str(log))
     c2.post('/v1/chat/completions',
             json={'messages': [{'role': 'user', 'content': 'hi'}]})
-    rows = [json.loads(l) for l in log.read_text().splitlines()]
+    rows = [json.loads(ln) for ln in log.read_text().splitlines()]
     routes = {r['route'] for r in rows}
     assert 'substitute_say' in routes and 'free' in routes
     for r in rows:

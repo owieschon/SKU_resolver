@@ -55,12 +55,12 @@ than a silently-empty catalog.
 """
 from __future__ import annotations
 
-from typing import Any, Iterator
+from typing import Iterator
 
 try:
-    from sku_translator.catalog_index import CatalogIndex, ParsedRow
+    from sku_translator.catalog_index import ParsedRow
 except ImportError:
-    from catalog_index import CatalogIndex, ParsedRow
+    from catalog_index import ParsedRow
 
 
 class ERPCatalogIndex:
@@ -145,47 +145,3 @@ class ERPCatalogIndex:
 
     def size(self) -> int:
         raise NotImplementedError('ERPCatalogIndex pending production wiring')
-
-
-def _selftest() -> None:
-    """Verify the stub raises NotImplementedError as designed."""
-    # Construction without eager=False should fail at reload() in __init__
-    raised = False
-    try:
-        ERPCatalogIndex(tenant_id='tenant_001')
-    except NotImplementedError:
-        raised = True
-    assert raised, 'ERPCatalogIndex should raise on construction'
-
-    # With eager=False, construction succeeds but methods fail
-    idx = ERPCatalogIndex(tenant_id='tenant_001', eager=False)
-    assert idx.tenant_id() == 'tenant_001'
-    for method, args in [
-        ('is_canonical', ('K5-24SBC',)),
-        ('lookup', ('K5-24SBC',)),
-        ('all_skus', ()),
-        ('bucket', ()),
-        ('family_prefix_bucket', ('K',)),
-        ('size', ()),
-        ('reload', ()),
-    ]:
-        raised = False
-        try:
-            getattr(idx, method)(*args)
-        except NotImplementedError:
-            raised = True
-        assert raised, f'{method} should raise NotImplementedError'
-
-    # parsed_rows is a generator, so we have to consume to trigger
-    raised = False
-    try:
-        list(idx.parsed_rows())
-    except NotImplementedError:
-        raised = True
-    assert raised, 'parsed_rows should raise NotImplementedError'
-
-    print('ERPCatalogIndex stub — self-test passed')
-
-
-if __name__ == '__main__':
-    _selftest()

@@ -7,11 +7,17 @@ master via VERIFIED mappings, and the decoder runs on those discovered fields
 """
 from __future__ import annotations
 
-from erp_harness import (
-    CatalogGrammarReport, HeuristicExplorer, ItemMasterRef, LineCatalogSource,
-    decode_catalog_source, identify_item_master, run_full_onboarding,
-)
 from harness_fixtures import BC, make_rig
+
+from erp_harness import (
+    CatalogGrammarReport,
+    HeuristicExplorer,
+    ItemMasterRef,
+    LineCatalogSource,
+    decode_catalog_source,
+    identify_item_master,
+    run_full_onboarding,
+)
 
 
 def test_full_onboarding_decodes_via_discovered_item_master():
