@@ -17,12 +17,12 @@ how to run it. These documents go deeper, grouped by area.
 ## Resolution core & catalog
 - [RESOLUTION_LEARNING_LOOP.md](RESOLUTION_LEARNING_LOOP.md) — how confirmed
   corrections feed the live resolver through a gated eval battery.
-- [DATA_HANDLING_LAYER.md](DATA_HANDLING_LAYER.md) — the catalog/inventory data
-  model and how it is loaded.
 - [VOCABULARY_SPEC.md](VOCABULARY_SPEC.md) — the family-word vocabulary the
   normalizer maps from rep phrasing to SKU families.
-- [ADVERSARIAL_GENERATOR.md](ADVERSARIAL_GENERATOR.md) — how the never-invent
-  guarantee is attacked (mutation fuzz, injection corpus).
+
+The never-invent guarantee is attacked directly in the test suite —
+`tests/test_resolution_adversarial.py` (mutation fuzz, injection/unicode corpus,
+tenant isolation) and `tests/test_gateway_adversarial.py`.
 
 ## Onboarding & ERP integration
 - [ERP_ADAPTER_HARNESS_SPEC.md](ERP_ADAPTER_HARNESS_SPEC.md) — the least-privilege

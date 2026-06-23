@@ -69,6 +69,24 @@ swallowed. Implementation: `src/observability/logs.py`.
 all free-text fields scrubbed via `observability.scrub_pii` before write —
 auditable conversation history that never stores a raw account number or contact.
 
+## PII & data handling
+
+PII never has to leave the box in the clear. Three scrubbing layers, each at a
+different level of aggression, sit in front of every outward path:
+
+- `observability.scrub_pii` (`telemetry.py`) — the redaction chokepoint every
+  span attribute, log field, and journal line passes through (emails, phones,
+  SSNs, spoken/typed account numbers, API keys, long tokens → placeholders).
+- the gateway journal (`gateway/journal.py`) scrubs free-text fields before they
+  touch disk.
+- `observability.scrub` (`service_improvement.py`) — anonymizes captured
+  improvement examples.
+
+The Sentry hook (`errors.py`) reuses `scrub_pii` in `before_send`, and the
+catalog/inventory shipped here are synthetic (no real customer, vendor, or
+financial data — see the top-level README), so even the fixtures carry nothing
+sensitive.
+
 ## Cost ledger
 
 `src/observability/cost.py` records per-call model cost with a per-session budget
