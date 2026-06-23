@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from typing import Any, cast
 
 from model_provider.base import ModelRequest, ModelResponse, ModelUnavailable
 from model_provider.keyring import key_for
@@ -54,14 +55,17 @@ class _OpenAICompatProvider:
         client = openai.OpenAI(api_key=api_key, base_url=self.base_url)
         messages = [{'role': 'system', 'content': req.system},
                     {'role': 'user', 'content': req.user}]
-        kwargs = dict(model=req.model, max_tokens=req.max_tokens,
-                      messages=messages)
+        kwargs: dict[str, Any] = dict(model=req.model, max_tokens=req.max_tokens,
+                                      messages=messages)
         if req.json_schema is not None:
             kwargs['response_format'] = {
                 'type': 'json_schema',
                 'json_schema': {'name': req.task, 'schema': req.json_schema}}
         try:
-            resp = client.chat.completions.create(**kwargs)  # type: ignore[call-overload]  # kwargs built dynamically
+            # kwargs are built dynamically; call through Any so the SDK's strict
+            # per-model overloads don't fight the dict (green with or without the
+            # openai SDK installed — no conditional type: ignore).
+            resp = cast(Any, client.chat.completions.create)(**kwargs)
         except Exception as e:
             raise ModelUnavailable(f'{self.name} call failed: {e}') from e
 
