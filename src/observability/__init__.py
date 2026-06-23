@@ -21,6 +21,8 @@ from observability.deploy_guard import (
     record_startup_commit,
     verification_preflight,
 )
+from observability.errors import init_error_tracking
+from observability.logs import get_logger, log_event
 from observability.service_improvement import ImprovementLog, anon_key, scrub
 from observability.telemetry import (
     init_tracing,
@@ -38,4 +40,5 @@ __all__ = [
     'record_startup_commit', 'verification_preflight', 'init_tracing',
     'redact', 'register_structured', 'reset_for_test', 'scrub_pii', 'set_attr',
     'tracer', 'ImprovementLog', 'anon_key', 'scrub',
+    'init_error_tracking', 'get_logger', 'log_event',
 ]

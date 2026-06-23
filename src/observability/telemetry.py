@@ -68,6 +68,7 @@ _initialized = False
 # Domain-neutral defaults; callers register their own via register_structured().
 _STRUCTURED_ATTRS: set[str] = {
     'svc.name', 'svc.task', 'svc.phase', 'svc.outcome',
+    'svc.source', 'svc.confidence', 'svc.channel', 'svc.refused',
     'llm.model_name', 'llm.provider', 'llm.cost.total', 'llm.latency_s',
     'llm.token_count.prompt', 'llm.token_count.completion',
     'session.id', 'svc.run_id', 'svc.tenant_id', 'svc.catalog_version',

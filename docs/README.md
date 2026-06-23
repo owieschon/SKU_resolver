@@ -37,6 +37,11 @@ how to run it. These documents go deeper, grouped by area.
   · [VOICE_RUNBOOK.md](VOICE_RUNBOOK.md) — the voice front-end: design, persona,
   and how to run it against Twilio.
 
+## Operations
+- [OBSERVABILITY.md](OBSERVABILITY.md) — tracing (OTel → Phoenix), error tracking
+  (Sentry), structured logs, the transcript journal, and the cost ledger; all
+  off-by-default, fail-open, PII-scrubbed.
+
 ## Verification
 - [PRODUCTION_VALIDATION_GATE.md](PRODUCTION_VALIDATION_GATE.md) — the boundary
   between what synthetic tests can prove and what only a real ERP / real audio /

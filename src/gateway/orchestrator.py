@@ -43,7 +43,10 @@ from gateway.models import (
 from gateway.pricebook import PriceBook
 from gateway.session import NEUTRAL_REFUSAL, SessionManager, VerificationResult
 from gateway.spoken import spoken_description, to_spoken
+from observability import get_logger, log_event, set_attr, tracer
 from resolution import ResolutionService
+
+_log = get_logger('gateway')
 
 _PRICE_RE = re.compile(r'\b(price|cost|how much|quote|pricing)\b', re.I)
 _AVAIL_RE = re.compile(r'\b(in stock|available|availability|lead time|'
@@ -108,16 +111,28 @@ class Gateway:
         # surface to the caller (401/403), the same posture as never masking a
         # security error as a degraded part answer.
         state = self.sessions.state_of(session_id, token)
-        try:
-            return self._dispatch(session_id, token, text, channel, state)
-        except Exception as e:
-            # G1–G5 fail-closed: ANY internal dependency fault (resolution,
-            # inventory, pricebook, customer-DB, intent) becomes a coherent
-            # escalation instead of a 500 into ElevenLabs — we do not control what
-            # ElevenLabs does with a tool 500 (assume dead air), so the gateway
-            # owning a well-formed escalation result keeps the turn alive. The
-            # fault is journaled (loud for the operator), not silently swallowed.
-            return self._fault_escalation(session_id, token, e)
+        # One span per customer turn; the resolve/LLM sub-spans nest under it, so
+        # a whole turn is diagnosable in Phoenix/any OTLP backend. No-op when
+        # tracing is off; attributes pass the redaction chokepoint.
+        with tracer.start_as_current_span('gateway.turn') as sp:
+            set_attr(sp, 'svc.task', 'gateway.turn')
+            set_attr(sp, 'session.id', session_id)
+            set_attr(sp, 'svc.channel', channel.value)
+            try:
+                resp = self._dispatch(session_id, token, text, channel, state)
+            except Exception as e:
+                # G1–G5 fail-closed: ANY internal dependency fault (resolution,
+                # inventory, pricebook, customer-DB, intent) becomes a coherent
+                # escalation instead of a 500 into ElevenLabs — we do not control
+                # what ElevenLabs does with a tool 500 (assume dead air), so the
+                # gateway owning a well-formed escalation keeps the turn alive.
+                # The fault is journaled (loud for the operator), not swallowed.
+                sp.record_exception(e)
+                resp = self._fault_escalation(session_id, token, e)
+            set_attr(sp, 'svc.outcome', resp.kind)
+            if getattr(resp, 'refused', None):
+                set_attr(sp, 'svc.refused', resp.refused)
+            return resp
 
     def _dispatch(self, session_id, token, text, channel, state) -> TurnResponse:
         # Pending readback confirmation takes precedence (the prior turn asked).
@@ -144,6 +159,10 @@ class Gateway:
         """Internal dependency fault -> coherent hand-off, never a 500. Journaled
         with the exception type so the operator sees it; the caller hears a normal
         escalation, not an error."""
+        # Surface the swallowed fault as an actionable WARNING log (not just the
+        # journal): a 500 turned into an escalation should still be visible to ops.
+        log_event(_log, 'warning', 'gateway.internal_fault',
+                  session=session_id, exc_type=type(exc).__name__)
         try:
             self.journal.record(EventType.ESCALATED, session_id,
                                 reason='internal_fault',

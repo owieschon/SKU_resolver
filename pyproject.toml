@@ -30,6 +30,7 @@ serve = [
     "fastapi>=0.110",
     "uvicorn>=0.30",
     "python-multipart>=0.0.9",
+    "sentry-sdk>=2.0",       # error tracking, off unless SENTRY_DSN is set
 ]
 # Tracing backend is OPT-IN and kept out of CI: observability is off/no-op by
 # default and imports OTel lazily, so the suite stays fast and deterministic.
