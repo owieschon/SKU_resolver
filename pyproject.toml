@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sku-translator"
+version = "1.0.0"
+description = "Deterministic SKU resolution engine: translates free-form human input into verified canonical catalog part numbers. Rules own canonical output; no model calls in the hot path."
+requires-python = ">=3.10"
+dependencies = [
+    "openpyxl>=3.1",
+    "rank-bm25>=0.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",        # coverage measurement (pytest --cov=src)
+    "defusedxml>=0.7",
+    "fastapi>=0.110",
+    "httpx>=0.27",            # FastAPI TestClient dependency (in-process, no network)
+    "python-multipart>=0.0.9",  # Twilio form-post parsing in the voice endpoint
+]
+
+# The deployed runtime (P4). Install with `.[serve]` to run the API/voice
+# server; kept out of the core deps so the library imports without a web stack.
+serve = [
+    "fastapi>=0.110",
+    "uvicorn>=0.30",
+    "python-multipart>=0.0.9",
+]
+# Tracing backend is OPT-IN and kept out of CI: observability is off/no-op by
+# default and imports OTel lazily, so the suite stays fast and deterministic.
+# Install with `.[trace]` to enable live spans (SKU_OBS_TRACING=1).
+trace = [
+    "opentelemetry-sdk>=1.20",
+    "opentelemetry-exporter-otlp-proto-http>=1.20",
+]
+# PDF catalog ingestion (erp_harness.catalog_source). Optional: the row-parsing
+# logic is pure and tested without it; this only enables reading real PDFs.
+pdf = [
+    "pypdf>=4.0",
+]
+# Live streaming voice (gateway.asr_streaming AssemblyAIStreamingASR). Optional:
+# the Twilio frame parsing + mu-law decode are pure/CI-tested; this only enables
+# the real AssemblyAI v3 WebSocket. Exercised by the credential-gated smoke.
+voice = [
+    "websocket-client>=1.7",
+    "certifi>=2024.2",        # CA bundle for TLS on interpreters w/o system certs
+]
+# LLM provider SDKs for the live seams (anthropic direct; openai serves OpenAI
+# AND OpenRouter). CI runs ScriptedProvider, so these are only needed live.
+llm = [
+    "anthropic>=0.40",
+    "openai>=1.40",
+]
+# On-prem NAV SQL transport (erp_transport.SqlBackend.from_pyodbc). Optional:
+# the backend's logic is tested with an injected runner; this only enables a
+# real SQL Server connection.
+erp = [
+    "pyodbc>=5.0",
+]
+# JS-rendered web catalog ingestion (erp_transport.web_fetch.playwright_fetcher).
+# Optional: static pages need no extra; this renders JS-heavy product grids.
+web = [
+    "playwright>=1.40",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+# src on pythonpath directly: tests must not depend on the editable-install
+# .pth hook (macOS UF_HIDDEN on dotfiles can silently disable .pth processing
+# under Python 3.14 site.py — see docs/MIGRATION_NOTES.md).
+pythonpath = ["src"]

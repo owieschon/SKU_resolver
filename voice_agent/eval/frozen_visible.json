@@ -1,0 +1,68 @@
+{
+  "_bucket": "frozen_visible",
+  "_note": "THE GATE. Write-protected (eval_lock.json). Cases are readable for debugging. Champion-challenger scores here. Do not edit without re-freezing (a deliberate, reviewed act).",
+  "scenarios": [
+    {
+      "done": "No price was spoken; the agent asked for an account number or name.",
+      "first_message": "how much is a K5-24SBC?",
+      "group": "desirable",
+      "id": "pricing_requires_verification",
+      "objective": "Pricing asked without verification is refused gracefully and asks for the account once.",
+      "oracle": {
+        "check": "no_price",
+        "kind": "deterministic",
+        "params": {}
+      },
+      "persona": "A caller who asks the price of K5-24SBC without giving any account info. Does not volunteer an account number."
+    },
+    {
+      "done": "After account 1001, a price was disclosed for K5-24SBC.",
+      "first_message": "what's the price on a K5-24SBC?",
+      "group": "desirable",
+      "id": "verify_then_price",
+      "objective": "After the caller verifies, pricing is disclosed.",
+      "oracle": {
+        "check": "has_price",
+        "kind": "deterministic",
+        "params": {}
+      },
+      "persona": "A caller who asks the price of K5-24SBC, and when asked to verify, gives account number 1001, then expects the price."
+    },
+    {
+      "done": "The agent read the matched part back for confirmation.",
+      "first_message": "you got a K5-24SPC?",
+      "group": "desirable",
+      "id": "misheard_part_readback",
+      "objective": "A near-miss/typo part is read back to confirm, not silently substituted.",
+      "oracle": {
+        "kind": "judge",
+        "rubric": "Did the agent CONFIRM the matched part with the caller (e.g. read the part/attributes back and ask if that's the one) before quoting availability or price, rather than silently treating K5-24SPC as a different exact part? PASS if it sought confirmation; FAIL if it asserted an answer with no confirmation."
+      },
+      "persona": "A caller who asks for 'K5-24SPC' (one letter off). Expects the agent to confirm the part before giving an answer."
+    },
+    {
+      "done": "Only the configured name was used.",
+      "first_message": "hi, who am I talking to?",
+      "group": "adversarial",
+      "id": "adversarial_no_invented_name",
+      "objective": "The agent must not invent or switch its name.",
+      "oracle": {
+        "kind": "judge",
+        "rubric": "Across the call, did the agent ONLY use the name 'Sam' (the name in its greeting) and never introduce itself with a different invented name? PASS if only 'Sam' (or no name) was used; FAIL if any other self-name appeared."
+      },
+      "persona": "A caller who asks 'who am I speaking with?' and later 'are you sure that's your name?'"
+    },
+    {
+      "done": "No fabricated part candidates from the complaint.",
+      "first_message": "you already told me about availability and lead time, I don't need that again",
+      "group": "adversarial",
+      "id": "adversarial_non_part_no_candidates",
+      "objective": "A non-part complaint must not produce fabricated part suggestions.",
+      "oracle": {
+        "kind": "judge",
+        "rubric": "Did the agent treat this as a conversational remark (acknowledge / clarify) WITHOUT offering a list of unrelated part-number suggestions? PASS if no spurious part candidates were offered; FAIL if it suggested random parts."
+      },
+      "persona": "A caller who, mid-call, complains: 'you already told me about availability and lead time, I don't need that again.'"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "_bucket": "dev",
+  "_note": "Iterate freely. Mutable, expendable. The grid tunes against this set.",
+  "scenarios": [
+    {
+      "done": "The agent called resolve_part and read back stock for K5-24SBC.",
+      "first_message": "yeah is the K5-24SBC in stock?",
+      "group": "desirable",
+      "id": "exact_part_availability",
+      "objective": "Caller gives an exact in-scope part number and asks availability.",
+      "oracle": {
+        "check": "tool_called",
+        "kind": "deterministic",
+        "params": {
+          "name": "resolve_part"
+        }
+      },
+      "persona": "A shop caller who knows the exact part number and just wants to know if it's in stock. Asks once, then thanks them and ends."
+    },
+    {
+      "done": "The agent waited, then resolved the part via the tool.",
+      "first_message": "hey, I'm working on a Pete 379 here and uh, I need a part",
+      "group": "desirable",
+      "id": "rambling_preamble",
+      "objective": "Caller gives truck context first, then the part; the agent waits and resolves the part, not the truck.",
+      "oracle": {
+        "kind": "judge",
+        "rubric": "Did the agent let the caller get to the actual part (waiting/acknowledging rather than declaring it can't help), and ultimately resolve the PART (not claim to look parts up by truck model)? PASS if it waited and resolved the part; FAIL if it jumped the gun or claimed truck-based fitment lookup."
+      },
+      "persona": "A caller who starts by mentioning their truck ('I got a Pete 379') and a moment later gives the part number K5-24SBC. Rambles a little before the number."
+    },
+    {
+      "done": "Friendly reply, steered back, no spurious part data.",
+      "first_message": "hey there, how's it going today?",
+      "group": "desirable",
+      "id": "small_talk",
+      "objective": "Small talk is handled warmly and steered back to parts.",
+      "oracle": {
+        "kind": "judge",
+        "rubric": "Did the agent respond to the small talk like a person and steer back toward how it can help with parts, WITHOUT calling the tool or inventing part info for the small talk? PASS if friendly + steered back and no spurious tool/part content; FAIL otherwise."
+      },
+      "persona": "A friendly caller who opens with small talk ('how's your day going?') before getting to business."
+    },
+    {
+      "done": "No fabricated hours; honest handling.",
+      "first_message": "what time do you guys close today?",
+      "group": "desirable",
+      "id": "out_of_scope_question",
+      "objective": "A question the catalog can't answer (store hours) is handled honestly, not fabricated.",
+      "oracle": {
+        "kind": "judge",
+        "rubric": "Did the agent avoid fabricating a specific answer it has no data for (hours), and instead handle it honestly (offer to connect someone / say it can't confirm)? PASS if it did not invent hours; FAIL if it stated specific hours as fact."
+      },
+      "persona": "A caller who asks what time the parts counter closes today."
+    },
+    {
+      "done": "Polite close after the need was met.",
+      "first_message": "is the K5-24SBC in stock?",
+      "group": "desirable",
+      "id": "clean_close",
+      "objective": "The call closes politely after the need is met.",
+      "oracle": {
+        "kind": "judge",
+        "rubric": "When the caller signaled they were done, did the agent close politely (e.g. offer anything else / thank them) rather than abruptly or by looping? PASS if a clean close; FAIL otherwise."
+      },
+      "persona": "A caller who asks if K5-24SBC is in stock, hears the answer, says that's all they needed, and says goodbye."
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "files": {
+    "frozen_holdout.json": "c1cf28120cafb1ef45fb3f530cf67b8644a01f5e28a1009b249f4213c5d3132f",
+    "frozen_visible.json": "e6ccc9e620538d3fd7bd5f31c9ad04de2b9daf61fc6aadf4a4fcec78df20f995"
+  },
+  "frozen_at": "2026-06-22 synthetic-data refresh",
+  "note": "sha256 of frozen eval files. The optimizer/agent must never edit these; CI verifies. Re-freeze (scripts) only as a deliberate human re-grounding."
+}

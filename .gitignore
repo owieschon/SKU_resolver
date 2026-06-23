@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+state/*.json
+state/*.jsonl
+state/*.xml
+state/*.md
+!state/.gitkeep
+.DS_Store
+_r*.txt
+
+# Internal process docs — do not publish
+_handoff/
+
+# Real/source catalog data must never be committed (only synthetic data/catalog.csv ships)
+data/*.xlsx
+data/.sku_map.json

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install package
+        run: pip install -e ".[dev]"
+
+      - name: Test suite (full — engine, fulfillment, resolution, ERP harness, gateway, runtime)
+        run: pytest --junitxml=state/pytest.xml
+
+      - name: Round-trip audit (identity + no-new-silent-rewrites + coverage floor)
+        run: python scripts/roundtrip_audit.py
+
+      - name: Readiness gate (ready=false fails the build)
+        run: python scripts/readiness.py
+
+      - name: Upload readiness artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: readiness
+          path: |
+            state/readiness.json
+            state/roundtrip_audit.json

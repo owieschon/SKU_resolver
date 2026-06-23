@@ -1,0 +1,8 @@
+{
+  "_meta": {
+    "description": "Construct-path rewrites accepted as known. Regenerated from data/catalog.csv; grammar SKUs round-trip by construction so this is expected empty.",
+    "count": 0,
+    "catalog": "data/catalog.csv"
+  },
+  "truncations": {}
+}
