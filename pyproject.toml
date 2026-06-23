@@ -107,8 +107,11 @@ ignore = ["E501"]
 [tool.mypy]
 # Type-gate the correctness-critical packages: the resolution core, fulfillment,
 # the chooser/retrieval service, the model-provider seam, observability, and the
-# customer-facing gateway (Optional-narrowing done with `if x is not None:`
-# guards, never asserts — guards survive `python -O`; see test_gateway_purity).
+# customer-facing gateway. Core vs gateway narrow Optionals differently, on
+# purpose: the core packages may use `assert x is not None` behind a guaranteeing
+# invariant (e.g. is_canonical() before lookup()); the GATEWAY may NOT — asserts
+# vanish under `python -O` and the gateway must stay correct there — so it narrows
+# with `if x is not None:` guards, enforced by test_gateway_purity.
 # Still excluded (deliberately, not incrementally): src/runtime (the FastAPI/
 # Twilio web edge) and src/erp_harness (dynamic ERP-shape JSON) — naming the
 # boundary beats casting it clean.
