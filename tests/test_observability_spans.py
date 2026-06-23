@@ -103,6 +103,37 @@ def test_internal_fault_is_logged_not_swallowed(tmp_path, monkeypatch):
     assert resp is not None
 
 
+def test_tracer_proxy_forwards_to_active(monkeypatch):
+    """Rebinding fix: a seam does `from observability import tracer` at import;
+    the exported proxy forwards to whatever init_tracing() makes active, so
+    enabling tracing actually reaches the seams — not just telemetry's module."""
+    import resolution.service as svc
+    from observability import telemetry
+    rec = _RecTracer()
+    monkeypatch.setattr(telemetry, '_active', rec)   # what init_tracing() swaps internally
+    with svc.tracer.start_as_current_span('probe'):   # svc.tracer bound at import
+        pass
+    assert any(s.name == 'probe' for s in rec.spans)
+
+
+def test_llm_span_carries_model_and_cost(monkeypatch):
+    """The `llm.<task>` span records the model and cost (the Phoenix LLM-trace
+    attributes), proven through the real LLMClient + a scripted provider."""
+    from model_provider import LLMClient, ScriptedProvider
+    from observability import telemetry
+    rec = _RecTracer()
+    monkeypatch.setattr(telemetry, '_active', rec)
+    client = LLMClient(provider=ScriptedProvider(scripted={'intent': 'ok'}))
+    client.propose(task='intent', system='s', user='u')
+
+    llm_spans = [s for s in rec.spans if s.name == 'llm.intent']
+    assert llm_spans, [s.name for s in rec.spans]
+    sp = llm_spans[0]
+    assert sp.attrs.get('svc.task') == 'intent'
+    assert sp.attrs.get('llm.model_name')      # model recorded
+    assert 'llm.cost.total' in sp.attrs        # cost recorded (0.0 for scripted)
+
+
 def test_sentry_off_without_dsn(monkeypatch):
     from observability import init_error_tracking
     monkeypatch.delenv('SENTRY_DSN', raising=False)

@@ -39,8 +39,9 @@ def create_app(*, streaming_asr=None, tts=None, persona=None, improvement=None):
     from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
     from fastapi.responses import JSONResponse
 
-    from observability import init_error_tracking
+    from observability import init_error_tracking, init_tracing
     init_error_tracking()   # Sentry iff SENTRY_DSN is set + sentry-sdk installed; else no-op
+    init_tracing()          # OTel/Phoenix spans iff SKU_OBS_TRACING is set + otel installed; else no-op
 
     app = FastAPI(title='SKU Resolution Gateway', version='1.0.0')
     gateway, sessions = build_gateway()

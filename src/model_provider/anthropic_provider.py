@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from typing import Any, cast
 
 from model_provider.base import (
     ModelRequest,
@@ -47,14 +48,17 @@ class AnthropicProvider:
             raise ModelUnavailable('anthropic SDK not installed') from e
 
         client = anthropic.Anthropic()   # key from env (never logged)
-        kwargs = dict(model=req.model, max_tokens=req.max_tokens,
-                      system=req.system,
-                      messages=[{'role': 'user', 'content': req.user}])
+        kwargs: dict[str, Any] = dict(
+            model=req.model, max_tokens=req.max_tokens, system=req.system,
+            messages=[{'role': 'user', 'content': req.user}])
         if req.json_schema is not None:
             kwargs['output_config'] = {
                 'format': {'type': 'json_schema', 'schema': req.json_schema}}
         try:
-            msg = client.messages.create(**kwargs)
+            # kwargs built dynamically; call through Any so the SDK's strict
+            # overloads don't fight the dict (green with or without the anthropic
+            # SDK installed — no conditional type: ignore). Mirrors openai_compat.
+            msg = cast(Any, client.messages.create)(**kwargs)
         except Exception as e:                 # network, rate-limit, 4xx
             raise ModelUnavailable(f'anthropic call failed: {e}') from e
 

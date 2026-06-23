@@ -20,15 +20,16 @@ from observability import (
     set_attr,
     tracer,
 )
-from observability.telemetry import _NoopTracer
+from observability.telemetry import _NoopSpan
 
 # ── tracing: off by default, fail-open ───────────────────────────────────────
 
 def test_tracer_is_noop_without_init():
     reset_for_test()
-    assert isinstance(tracer, _NoopTracer)
-    # emitting a span without init is safe and never raises
+    # the shared tracer forwards to a no-op until init; emitting a span is safe,
+    # never raises, and yields a no-op span.
     with tracer.start_as_current_span('x') as sp:
+        assert isinstance(sp, _NoopSpan)
         set_attr(sp, 'svc.task', 'probe')
 
 
@@ -45,7 +46,7 @@ def test_init_fail_open_when_libs_absent(monkeypatch):
     enabled = init_tracing()           # never raises
     from observability import tracer as t
     if not enabled:                    # CI path: OTel absent
-        assert isinstance(t, _NoopTracer)
+        assert isinstance(t.start_as_current_span('x'), _NoopSpan)
 
 
 def test_span_never_suppresses_caller_exception():

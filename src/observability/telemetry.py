@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import os
 import re
+from typing import Any
 
 _ENV_ON = 'SKU_OBS_TRACING'
 _ENV_CONTENT = 'SKU_OBS_TRACE_CONTENT'
@@ -58,7 +59,23 @@ class _NoopTracer:
     def start_span(self, *a, **k): return _NoopSpan()
 
 
-tracer = _NoopTracer()
+# Every seam does `from observability import tracer`, which binds the NAME at
+# import time. If `tracer` were a plain global that init_tracing() reassigned,
+# those bindings would freeze on the no-op and never see a real tracer. So the
+# exported `tracer` is a stable PROXY that forwards to the current `_active`
+# tracer; init_tracing() swaps `_active`, and every seam picks it up live.
+_active: Any = _NoopTracer()
+
+
+class _TracerProxy:
+    def start_as_current_span(self, *a, **k):
+        return _active.start_as_current_span(*a, **k)
+
+    def start_span(self, *a, **k):
+        return _active.start_span(*a, **k)
+
+
+tracer: Any = _TracerProxy()
 _initialized = False
 
 
@@ -143,9 +160,9 @@ def init_tracing(service_name: str = 'sku-engine') -> bool:
     """Bootstrap OTel/Phoenix if SKU_OBS_TRACING is truthy AND the libs are
     present. Returns True if live tracing was enabled, False otherwise (no-op).
     Never raises."""
-    global tracer, _initialized
+    global _active, _initialized
     if _initialized:
-        return not isinstance(tracer, _NoopTracer)
+        return not isinstance(_active, _NoopTracer)
     _initialized = True
     if os.environ.get(_ENV_ON, '').strip().lower() not in ('1', 'true', 'yes', 'on'):
         return False
@@ -164,15 +181,15 @@ def init_tracing(service_name: str = 'sku-engine') -> bool:
         provider.add_span_processor(
             BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint)))
         trace.set_tracer_provider(provider)
-        tracer = trace.get_tracer(service_name)
+        _active = trace.get_tracer(service_name)   # proxy forwards here live
         return True
     except Exception:
-        tracer = _NoopTracer()   # fail-open: any error -> no-op, swallowed
+        _active = _NoopTracer()  # fail-open: any error -> no-op, swallowed
         return False
 
 
 def reset_for_test() -> None:
     """Test hook: forget init state so a test can re-init."""
-    global tracer, _initialized
-    tracer = _NoopTracer()
+    global _active, _initialized
+    _active = _NoopTracer()
     _initialized = False
