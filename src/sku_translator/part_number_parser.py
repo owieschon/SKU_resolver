@@ -16,6 +16,22 @@ v3.5 changes from v3.4:
 The parser is intentionally permissive about what it returns. Each pattern
 emits a dict with whatever fields it could extract; the extractor maps these
 into PartSpec attributes. Patterns that can't decode return None.
+
+File layout (large by design — a hand-authored grammar of ~300 patterns;
+search these section banners to navigate):
+
+    Lookup tables          family / finish / OEM meaning dictionaries
+    Pattern registry       PAT_* compiled regexes, grouped by family
+    Decoder helpers        _decode_* functions, one per pattern
+    Catch-all / Phase 4 /  long-tail family patterns added during catalog
+      Final / Long-tail      validation (PAT_* + its _decode_* kept together)
+    Pattern dispatch       PATTERNS = ordered [(name, regex, decoder)]; order
+                           is precedence
+    Public API             parse() — the only entry point
+
+Note: a couple of decoders recursively call the dispatch (_try_patterns) to
+classify a parent/inner SKU, so the registry, decoders, and dispatch are one
+coupled unit; splitting the file into a package is tracked as a follow-up.
 """
 from __future__ import annotations
 
