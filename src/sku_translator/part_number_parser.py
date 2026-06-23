@@ -241,8 +241,6 @@ PERF_DIESEL_CONFIGS = {
 # --- Marmon flange/flare ---------------------------------------------------
 # Restricted to Marmon-specific suffixes (L for long, S for short, DSS for
 # Durable Stainless Steel hose, FL for flare, B/WFF/PLT/PLATE variants).
-# Generic BOM-child suffixes (-ASSY, -COMPONENT, -MNT, -BRKT) handled by
-# PAT_BOM_CHILD instead.
 PAT_MARMON = re.compile(
     r'^(?P<base>\d{5,6})'
     r'-(?P<suffix>L|S|DSS|FL|B|WFF|PLT|PLATE)$'
@@ -434,13 +432,6 @@ PAT_MISC_BEND = re.compile(
 )
 
 # --- BOM-child suffixes (-ASSY, -COMPONENT, -MNT, -BRKT) ------------------
-# Generic pattern: any parent SKU + -ASSY/-COMPONENT/-MNT/-BRKT suffix.
-# Per SME: "-ASSY = kit version of parent, -COMPONENT = component-only,
-# -MNT = mounting parts, -BRKT = bracket". Recursively classifies parent.
-PAT_BOM_CHILD = re.compile(
-    r'^(?P<parent>.+)-(?P<bom_role>ASSY|COMPONENT|MNT|BRKT)$'
-)
-
 # --- CBS Freightliner kit -------------------------------------------------
 # CBS-FL-ODS-S4 is the kit parent; CBS-FL-ODS-S4{N} are kit components.
 # Structurally identical to ZP/ZM kit pattern (parent + numeric component
@@ -449,30 +440,6 @@ PAT_BOM_CHILD = re.compile(
 PAT_CBS_KIT = re.compile(
     r'^CBS-(?P<oem>FL)-(?P<ods>ODS)-S4(?P<component_idx>\d?)$'
 )
-
-# --- ZP/ZM kit-component (parent + numeric index) -------------------------
-# ZP8536-2 (parent) and ZP8536-21, ZP8536-22 (components).
-# Distinguishable from standard parametric ZP12-100EXA: kit form has no
-# body+finish trailing letters, just numeric component index.
-PAT_Z_KIT = re.compile(
-    r'^(?P<family>ZP|ZM)(?P<base>\d{4,5})-(?P<component_idx>\d{1,2})'
-    r'(?:\s+REV\.?\s*[A-Z])?$'
-)
-
-# --- OEM compound (acronyms, not just numerics) ---------------------------
-# KW-ACUP (Kenworth A-Cup crossover), IH-CUP (International Cup), etc.
-# Distinguishable from OEM-mirror SKUs by acronym suffix (no leading digit).
-PAT_OEM_COMPOUND = re.compile(
-    r'^(?P<oem>KW|PB|FL|IH|MK|VG|WS|FT|GM)-'
-    r'(?P<compound>[A-Z][A-Z0-9]+)$'
-)
-
-# OEM-compound vocabulary (per SME-confirmed cases)
-OEM_COMPOUND_MEANINGS = {
-    ('KW', 'ACUP'):  'Kenworth A-cup shaped crossover pipe',
-    ('IH', 'CUP'):   'International cup shaped crossover pipe',
-    ('KW', 'HE18'):  'Kenworth elbow (legacy customer part, deprecated)',
-}
 
 # --- Apex Diesel 888EX/777EX (extended Perf Diesel) ----------------
 # Already handled by PAT_PERF_DIESEL but make sure 888EX-style with body
@@ -1140,32 +1107,6 @@ def _decode_misc_bend(m: re.Match) -> dict[str, Any]:
     }
 
 
-def _decode_bom_child(m: re.Match) -> dict[str, Any] | None:
-    parent_sku = m.group('parent')
-    role = m.group('bom_role')
-    role_meanings = {
-        'ASSY':       'Kit/assembly version of parent',
-        'COMPONENT':  'Component-only of a kit',
-        'MNT':        'Mounting parts',
-        'BRKT':       'Bracket',
-    }
-    # Recursively classify the parent
-    parent_result = _try_patterns(parent_sku)
-    result: dict[str, Any] = {
-        'pattern': 'bom_child',
-        'family': 'BOM_CHILD',
-        'family_meaning': f'BOM child ({role_meanings.get(role)})',
-        'parent_sku': parent_sku,
-        'bom_role': role,
-        'bom_role_meaning': role_meanings.get(role),
-    }
-    # Inherit identity hints from the parent
-    if parent_result:
-        for k in ('family', 'family_meaning', 'is_proprietary',
-                  'proprietary_customer', 'oem', 'oem_meaning'):
-            if k in parent_result and parent_result[k] is not None:
-                result[f'parent_{k}'] = parent_result[k]
-    return result
 
 
 def _decode_cbs_kit(m: re.Match) -> dict[str, Any]:
@@ -1186,40 +1127,8 @@ def _decode_cbs_kit(m: re.Match) -> dict[str, Any]:
     }
 
 
-def _decode_z_kit(m: re.Match) -> dict[str, Any]:
-    family = m.group('family')
-    component_idx = m.group('component_idx')
-    base = m.group('base')
-    # Kit components have 2-digit indices (21, 22). Single-digit = parent.
-    is_component = len(component_idx) >= 2
-    return {
-        'pattern': 'z_kit',
-        'family': family,
-        'family_meaning': FAMILY_MEANINGS.get(family),
-        'z_base': base,
-        'component_idx': component_idx,
-        'is_kit_parent': not is_component,
-        'is_kit_component': is_component,
-    }
 
 
-def _decode_oem_compound(m: re.Match) -> dict[str, Any]:
-    oem = m.group('oem')
-    compound = m.group('compound')
-    meaning = OEM_COMPOUND_MEANINGS.get((oem, compound))
-    result: dict[str, Any] = {
-        'pattern': 'oem_compound',
-        'family': oem,
-        'family_meaning': OEM_MEANINGS.get(oem),
-        'oem': oem,
-        'oem_meaning': OEM_MEANINGS.get(oem),
-        'compound_code': compound,
-        'compound_meaning': meaning,
-    }
-    # If compound is a long alphanumeric, likely a literal OEM PN we mirror
-    if any(ch.isdigit() for ch in compound) and len(compound) >= 5:
-        result['is_oem_pn_mirror'] = True
-    return result
 
 
 # ============================================================================
