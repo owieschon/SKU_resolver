@@ -211,7 +211,7 @@ class UnsupportedERPError(HarnessError):
 
 
 class InvariantViolation(HarnessError):
-    """A load-bearing harness invariant was violated (least-privilege
+    """A critical harness invariant was violated (least-privilege
     manifest, contract totality). These are explicit raises, NOT asserts —
     asserts are stripped under `python -O`, which would silently void the
     guarantee (R0 #2)."""

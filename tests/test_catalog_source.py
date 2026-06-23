@@ -184,7 +184,7 @@ def test_live_real_pdf_decodes_to_wa_family():
     report = decode_catalog(rows, sku_field='sku', description_field='description')
     wa = [f for f in report.families if f.family_code == 'WA']
     assert wa and wa[0].member_count > 200      # dominant family discovered
-    assert report.structured_share > 0.4        # quick win on an unseen catalog
+    assert report.structured_share > 0.4        # early result on an unseen catalog
 
     # Multi-field correlation: the engine-line segment auto-resolves from the
     # captured fitment/section evidence, lifting per-segment coverage sharply.

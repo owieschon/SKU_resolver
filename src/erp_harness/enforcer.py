@@ -2,7 +2,7 @@
 
 Guarantees (each one has a planted-fault test in test_harness_c2_enforcer.py):
 
-  READ-ONLY BY CONSTRUCTION — the public surface is `get()`. The internal
+  READ-ONLY by design — the public surface is `get()`. The internal
   `request()` refuses any non-GET method with a typed WriteRefused that is
   journaled BEFORE the backend is consulted: a refused write never reaches
   the wire, provable from the destination's audit log.
@@ -32,7 +32,7 @@ class WriteRefused(Exception):
         self.method, self.path = method, path
         super().__init__(
             f'{method} {path!r} refused: exploration transport is read-only '
-            f'by construction (spec C2). This attempt was journaled.'
+            f'by design (spec C2). This attempt was journaled.'
         )
 
 

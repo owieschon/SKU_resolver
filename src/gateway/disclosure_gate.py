@@ -8,7 +8,7 @@ This is the floor the spec says to build first "so the orchestration has somethi
 it cannot talk around"; accordingly it is a PURE FUNCTION — no I/O, no model, no
 mutation — and the invariants (§9.2–9.4) are proven against it in isolation.
 
-The load-bearing subtlety is the multi-part × shared-account interaction (§3.3,
+The critical subtlety is the multi-part × shared-account interaction (§3.3,
 invariant 3): the account is SHARED and durable, so establishing it once satisfies
 the account-component of every part's price precondition — but identity and the
 fresh read are PER-PART. An unidentified part must never inherit price

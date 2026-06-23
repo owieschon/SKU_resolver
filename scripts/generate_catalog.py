@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the synthetic demo catalog by enumerating the part-number grammar.
 
-This catalog is SYNTHETIC BY CONSTRUCTION: every parametric SKU is produced by
+This catalog is SYNTHETIC by design: every parametric SKU is produced by
 enumerating valid (family, diameter, length, body, finish) combinations and the
 elbow / muffler / clamp builders, then kept only if it round-trips
 (``construct(extract(sku)) == sku``). Nothing is copied from any real catalog.

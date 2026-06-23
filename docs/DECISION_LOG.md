@@ -19,7 +19,7 @@ decoder (315-pattern regex grammar + bucket-scoped Levenshtein +
 extract/construct invertibility) was built deterministic from the start. *Why:*
 wrong-but-plausible SKUs are the worst failure class (they pass human review);
 a model that "usually" gets it right is the wrong tool where confident error is
-costlier than an honest "needs review." This is the thesis the whole repo
+costlier than an accurate "needs review." This is the thesis the whole repo
 inherits. **Status:** locked; productized as `src/sku_translator/`.
 
 **F2 — The voice few-shot falsification.** LLM extraction of SKUs from degraded
@@ -173,7 +173,7 @@ candidate in top-5") is NOT implemented.
 lacks — and its measured F1 collapsed to 0.15-0.33 at production accuracy
 (locked 2026-05-02; redesign is milestone M2, deliberately out of scope).
 Implementing a rule whose deficiency is already quantified, against data
-we'd have to fabricate, fails both honesty and scope discipline.
+we'd have to fabricate, fails both accuracy and scope discipline.
 
 **Outcome.** Documented inline in service.py; the seam is stated, not
 smoothed. **Status:** locked.
@@ -197,7 +197,7 @@ tableextensions, $skiptoken pagination, per-entity grants, destination-side
 audit log) — not the container replica, which remains the later integration
 target.
 
-**Why.** Demonstrate-the-catch requires *configurable* faults; a synthetic
+**Why.** Fault-injection check requires *configurable* faults; a synthetic
 twin plants them deterministically in CI in milliseconds. The twin seeds
 items from the real catalog fixture so the golden path's acceptance (the
 translator's identity guarantee on synced data) runs against real SKU
@@ -237,7 +237,7 @@ XXE/billion-laughs vulnerable by default. The safe parser costs nothing.
 ## 2026-06-07 — R0 defect fixes (self-audit remediation)
 
 Six defects surfaced by adversarial self-review, each fixed with a
-failing-first regression test (demonstrate-the-catch):
+failing-first regression test (fault-injection check):
 
 - **#1 (correctness, was silent):** `add_business_days`/`next_business_day`
   now raise `CalendarHorizonError` when a walk crosses the holiday-table
@@ -245,7 +245,7 @@ failing-first regression test (demonstrate-the-catch):
   computed a ship date in an undefined calendar year, silently counting
   e.g. Jan 1 as a business day. Golden G19/G20 + property guard
   (`local.date() <= CALENDAR_HORIZON`).
-- **#2:** load-bearing `assert`s in harness production paths (manifest
+- **#2:** critical `assert`s in harness production paths (manifest
   least-privilege, contract totality, discovery status) replaced with
   typed raises (`InvariantViolation`, `DiscoveryError`). Asserts vanish
   under `python -O`; a subprocess test now proves the invariants fire under
@@ -328,7 +328,7 @@ hardcoded patterns (segmentation into typed runs, family-by-leading-prefix,
 per-family regex induction, positional role semantics, separator/case
 normalization).
 
-It runs as an iterative loop: round 0 is structural induction (the quick win —
+It runs as an iterative loop: round 0 is structural induction (the first result —
 on the real the example catalog it structurally decodes ~55% with zero human
 effort); later rounds propagate high-confidence clues to families that share a
 shape ("segment 2 was a diameter in family K, so test that in family M with the
@@ -389,7 +389,7 @@ Built behind the existing seam (no gateway change):
   utterance, all gates intact. Boots with a no-op simulated ASR; switches to
   AssemblyAI when the key is present. Replies emit as JSON 'assistant' events.
 
-Honestly scoped: speaking replies back as audio needs a TTS leg (TTS → mu-law →
+Clearly scoped: speaking replies back as audio needs a TTS leg (TTS → mu-law →
 Twilio media messages) — named as the remaining integration step. The callable
 talking bot today is the `<Gather>` path (P4); the streaming path is the
 transcription-fidelity upgrade and the foundation for full duplex.
@@ -422,7 +422,7 @@ Remaining P3 adapters, behind the existing protocols (config selects by env;
   for backoff/grant-gap, not exceptions), timeout->TransportTimeout, read-only
   method enforcement, and OAuth client-credentials token caching/refresh
   (deterministic ManualClock) are all unit-tested with no network. Live-tenant
-  runs remain gated behind the twin demonstrate-the-catch matrix (harness spec
+  runs remain gated behind the twin fault-injection check matrix (harness spec
   §6), so there is no live ERP smoke — the mocked transport is the coverage.
 
 Hardening pass (same session): extracted the credentialed seams' parsing into
@@ -650,7 +650,7 @@ into the in-flight httpx request and aborts the connection at the source; SDK
 CancelledError and never reaches completion) AND live (tiny budget → returned at
 ~B, not after a full generation). The sync/thread path stays for CI only.
 
-**B is the model-route budget by construction:** handle_async checks substitution
+**B is the model-route budget by design:** handle_async checks substitution
 FIRST and never subjects it to the deadline, so the gateway/substitution route is
 not held hostage to the model's jitter. The two latency populations the B-probing
 must characterize separately — substitution (narrow tail, model not invoked) and
@@ -734,7 +734,7 @@ crash/500, incoherent/empty utterance, or fabricated fact). Mapped first
 (docs/FAULT_INJECTION_PLAN.md) against the two endpoints/flows so the harness
 covers every seam, not the reachable ones, then built: tests/test_fault_injection.py
 (18). Same adversarial discipline as containment, applied to exogenous faults with
-deterministic correct behavior; demonstrate-the-catch where a real fix is involved
+deterministic correct behavior; fault-injection check where a real fix is involved
 (the unwrapped path is shown to fail BEFORE asserting the wrapped path holds).
 
 **Two endpoints, two flows.** custom-LLM seam (handle_async): S1 transport-in, S2
@@ -760,7 +760,7 @@ degraded anyway.
 4. **G6** `journal.record()` best-effort: a write failure is logged, never raised —
    losing an audit row beats dropping a caller's turn.
 
-**The slow tail is a first-class fault, not a happy-path afterthought:** an async
+**The slow tail is a top-level fault, not a happy-path afterthought:** an async
 model slower than B at a seconds-scale budget is injected and asserted to be really
 aborted (coroutine receives CancelledError, never completes, endpoint returns at ~B
 not after the full generation) — the case the deadline exists for and the case the
@@ -794,7 +794,7 @@ question) only BECAUSE the gate below cannot be talked around. So the gate is bu
 and proven before the agency that depends on it — same prove-the-floor-then-build
 discipline as containment.
 
-**The load-bearing invariant proven now: invariant 3 (inherited disclosability
+**The critical invariant proven now: invariant 3 (inherited disclosability
 forbidden).** The account is SHARED and durable (established once, indexes every
 part's price), but identity and the fresh read are PER-PART. The attack the spec
 flags as most-likely-wrong-on-first-wire — an unidentified part C inheriting price
@@ -846,7 +846,7 @@ questions are even asked. This is the next design pass before build.
 (orchestration), 6 (§10 adversarial suite) on top of the proven gate floor. Spec
 now canonical in-repo at `docs/CONVERSATION_STATE_SPEC.md`.
 
-**Step 3 — say extensions + the quantity guard (demonstrate-the-catch).** Added
+**Step 3 — say extensions + the quantity guard (fault-injection check).** Added
 on-hand-QUANTITY detection to `say_guard` (`_QTY`): a number ADJACENT to on-hand
 language ("58 on hand", "we have 58", "qty: 58") — never bare "in stock", never
 ship-times / lead-time numbers / dimensions / prices (their trailing words aren't
@@ -880,7 +880,7 @@ with containment (the say comes only from the gateway, model authors nothing), t
 only path to disclosure is the gated `read_and_disclose` — so no LLM move sequence
 reaches past the gate.
 
-**Honest scope:** the conversation layer + gate are built and PROVEN IN ISOLATION,
+**Accurate scope:** the conversation layer + gate are built and PROVEN IN ISOLATION,
 not yet WIRED into the live `/agent/turn` (which still runs the legacy fixed-
 sequence backend). The availability-boolean change IS live (it's `answers.py`).
 Wiring the orchestration in to REPLACE the fixed backend is a separate integration
@@ -899,9 +899,9 @@ layer + §10 all green.
 on the agent path. Swap points: `app.py` /agent/turn, `endpoint_harness` (scripted
 front), `scripts/adversarial_live.py` — all now drive `converse`.
 
-**De-risked by construction:** `converse` REUSES the answer builders
+**De-risked by design:** `converse` REUSES the answer builders
 (`availability()`, `pricing()`) and the verify/authorization/lockout machinery, so
-the containment keystone (`surfaced()` provenance, read structurally from
+the containment core (`surfaced()` provenance, read structurally from
 `resp.availability`/`price`/`candidates`/`meta`) and the security gates are
 preserved unchanged. The orchestration layers the spec's durable Conversation state
 (parts/account/focus, server-side per caller_id), the closure loop, and the
@@ -931,7 +931,7 @@ per-turn DECISION POINT (`resp.meta['decision']`: move / focus / account_establi
 test green + adversarial-live re-run against the wired path green. §10-isolation was
 the gate to START the swap; these two are the gate to TRUST it.
 
-**Honest remaining:** the pure disclosure gate's FRESHNESS arm (read_and_disclose
+**Accurate remaining:** the pure disclosure gate's FRESHNESS arm (read_and_disclose
 with as_of) is not yet the live disclosure path — converse reuses the legacy
 authorization gate for pricing (identity + verified account, equivalent for single
 part) and the boolean availability answer; freshness needs real data velocity (V5,
@@ -956,7 +956,7 @@ the live path + a demonstrated-red. Anything short is a claim, not a proof.** CC
 cannot be both author and verifier; the grep is the exogenous check.
 
 **The fix — the gate is the live authority.** `converse`'s disclosure now routes
-through `_converse_disclose -> conv.read_and_disclose -> discloseable` (grep-proven
+through `_converse_disclose -> conv.read_and_disclose -> discloseable` (verified
 live: app.py /agent/turn -> converse -> _converse_disclose -> read_and_disclose ->
 discloseable). Identity/account preconditions and the freshness arm are gate-
 enforced on the path that runs. Legacy `turn()` is UNCHANGED (other channels), so
@@ -986,7 +986,7 @@ its 11-file test footprint is untouched.
 **Re-prove live (say is the fact path):** adversarial-live re-run against the
 GATE-WIRED converse path — 12/12 still CONTAINED. `docs/ADVERSARIAL_LIVE_RESULTS.json`.
 
-**Honest boundaries (NOT inflating again):**
+**Accurate boundaries (NOT inflating again):**
 - **Freshness is wired + authoritative but does not yet BIND** in normal operation:
   reads self-stamp `as_of=now`, so a stale fact can't arise until the data source
   carries real read-timestamps (V5 pilot wiring). The gate WOULD reject stale
@@ -997,12 +997,12 @@ GATE-WIRED converse path — 12/12 still CONTAINED. `docs/ADVERSARIAL_LIVE_RESUL
   code. SIMULTANEOUS multi-part disclosure (price/stock several parts in one turn,
   multi-answer provenance) is NOT built — that's a separate capability, not claimed.
 
-**Status:** full suite 528 passed, 25 skipped (was 523). The gate is load-bearing
+**Status:** full suite 528 passed, 25 skipped (was 523). The gate is critical
 on the live path, proven green + on-live-path + demonstrated-red.
 
 ## 2026-06-08 — Grep-pass (backlog clean) + pilot labeling boundary built
 
-**Grep-pass on the other load-bearing claims** (the cheap exogenous check that
+**Grep-pass on the other critical claims** (the cheap exogenous check that
 caught the gate inflation): all four confirm the tested behavior is ON the live
 path — fabrication containment (`/v1/chat/completions` mounted -> handle_async ->
 apply_model_output -> filter_free; test drives the real endpoint), say-guard
@@ -1037,7 +1037,7 @@ contaminating each other (eval-isolation applied to the human):
 converse emission) + demonstrate-red (contamination guards raise; not-exercised
 falsifiable).
 
-**Honest scope — NOT built (next):** the INGESTION front-end (shadow mode: observe a
+**Accurate scope — NOT built (next):** the INGESTION front-end (shadow mode: observe a
 human-handled call, produce the counterfactual "what I would have said" + decision
 points for the rep to label; propose mode later); the counterfactual confidence
 DECAY by call-depth (shadow labels degrade deeper into a call the agent didn't

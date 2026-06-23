@@ -1,5 +1,5 @@
 """The rule-release eval battery (see docs/RESOLUTION_LEARNING_LOOP.md §4) — the
-keystone of the learning loop.
+core of the learning loop.
 
 A proposed resolution alias reaches live behavior only by clearing THIS, and it is
 the ONLY path (it replaces the stub boolean inside `alias_store.may_promote`, not a
@@ -16,7 +16,7 @@ not "held-out accuracy > X%"; the battery has THREE components, all required:
 The held-out cases carry an EXOGENOUS true SKU (from the order/quote cross-reference
 or a rep label) — NEVER the agent's own resolution — so the agent cannot seed its own
 exam (self-laundering guard, invariant 3). `evaluate(..., include_subclass=False)`
-runs the 2-component battery, used to DEMONSTRATE that 4.3 is load-bearing: a
+runs the 2-component battery, used to DEMONSTRATE that 4.3 is critical: a
 subclass-failing rule passes the 2-component and fails the 3-component.
 """
 from __future__ import annotations
@@ -157,7 +157,7 @@ def subclass_stratified(cand: CandidateRule, holdout, params: BatteryParams) -> 
 def evaluate(cand: CandidateRule, holdout, *, params: BatteryParams = BatteryParams(),
              include_subclass: bool = True) -> Verdict:
     """Run the battery. `include_subclass=False` runs the 2-component version — used
-    ONLY to demonstrate that 4.3 is load-bearing (a subclass-failing rule passes the
+    ONLY to demonstrate that 4.3 is critical (a subclass-failing rule passes the
     2-component and fails the 3-component). Production always runs the full battery."""
     ho = held_out_accuracy(cand, holdout, params)
     nr = no_regression(cand, holdout, params)

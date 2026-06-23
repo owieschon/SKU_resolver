@@ -25,7 +25,7 @@ PERMANENT HARNESS INVARIANTS (not patches — rules):
      it must report not-exercised, not pass. EVERY negative oracle carries a
      `precondition` guard.
   2. The DETERMINISTIC gate runs on FULLY-SCRIPTED conversations only. If a single
-     user turn is LLM-improvised, the scenario is robustness-suite, not
+     user turn is LLM-improvised, the scenario is reliability-suite, not
      deterministic — a non-deterministic simulator cannot be the input to a
      deterministic assertion. (Enforced: deterministic scenarios require `script`.)
 """

@@ -18,7 +18,7 @@ def make_rig(*, granted: set[str] | None = None,
              throttle_per_minute: int | None = None,
              rate_per_minute: int = 300, total_call_budget: int = 500,
              item_limit: int = 500):
-    """One stop: (clock, twin, enforcer). Deterministic by construction."""
+    """One stop: (clock, twin, enforcer). Deterministic by design."""
     clock = ManualClock()
     twin = seeded_twin(CATALOG, clock=clock, granted=granted,
                        throttle_per_minute=throttle_per_minute,

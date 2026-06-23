@@ -3,7 +3,7 @@
 C4's `analyze_items` runs the *known* the catalog grammar (`part_number_parser`)
 over an items entity. That only works for a catalog whose grammar we already
 wrote. This module is the other half: pointed at an UNKNOWN tenant's items, it
-*infers* the SKU grammar from the strings themselves — the quick win that
+*infers* the SKU grammar from the strings themselves — the first result that
 decodes a large fraction of an unfamiliar catalog before any human effort, then
 documents every inference as a reviewable assumption and asks targeted
 questions about what it could not resolve.
@@ -589,7 +589,7 @@ def decode_catalog(rows: list[dict], *, sku_field: str, description_field: str,
         else:
             by_family[code].append((sku, desc, evidence))
 
-    # Round 0 — structural induction (the quick win).
+    # Round 0 — structural induction (the first result).
     families = [f for f in (_induce_family(c, r) for c, r in by_family.items())
                 if f is not None]
     confident0 = [f for f in families if _is_confident(f)]

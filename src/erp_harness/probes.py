@@ -28,7 +28,7 @@ def probe_throttle(enforcer: SafetyEnforcer, *, burst: int = 80) -> dict[str, An
     detection, exhausted retries, or completion. (The original draft read
     the journal only on the clean path and reported None when the enforcer's
     retry loop hit a hard 429 wall — the planted-fault E2E caught it.)
-    Honest outcome when no 429 occurs: ceiling-not-reached."""
+    Accurate outcome when no 429 occurs: ceiling-not-reached."""
     start_idx = len(enforcer.journal.entries)
     try:
         for _ in range(burst):

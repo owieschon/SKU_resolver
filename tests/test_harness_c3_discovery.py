@@ -1,4 +1,4 @@
-"""C3 — discovery smoke + the demonstrate-the-catch mutation matrix.
+"""C3 — discovery smoke + the fault-injection check mutation matrix.
 
 Five fault classes planted on the twin; the harness must name ALL of them.
 A detector that has never caught a planted fault is unproven (spec §2).

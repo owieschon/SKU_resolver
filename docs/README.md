@@ -7,7 +7,7 @@ how to run it. These documents go deeper, grouped by area.
 - [DECISION_LOG.md](DECISION_LOG.md) — the consequential design decisions, the
   alternatives weighed, and why (rules-own-output, the resolution paths, the
   fulfillment policies).
-- [MATURITY.md](MATURITY.md) — the honest per-capability map: what is fully
+- [MATURITY.md](MATURITY.md) — the accurate per-capability map: what is fully
   tested vs. credential-gated vs. stub.
 - [PRODUCTION_PLAN.md](PRODUCTION_PLAN.md) — what a path to production would look
   like, and what was deliberately left out of this work sample.

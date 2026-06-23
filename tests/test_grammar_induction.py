@@ -1,10 +1,10 @@
 """Tenant-agnostic SKU grammar induction (C4, unknown-catalog path).
 
 Two proving grounds:
-  1. The the example tenant's twin catalog — the "quick win": induction must recover
+  1. The the example tenant's twin catalog — the "early result": induction must recover
      family structure from REAL SKUs without using the hardcoded parser,
      showing the technique generalizes.
-  2. A planted UNKNOWN grammar — demonstrate-the-catch: a made-up nomenclature
+  2. A planted UNKNOWN grammar — fault-injection check: a made-up nomenclature
      the known parser has never seen. Induction must infer diameter + finish
      from description correlation, propagate a clue to a sparse same-shape
      family, leave a genuinely opaque segment as an SME question, and hand the
@@ -31,7 +31,7 @@ def test_segmentation_and_shape_mask():
         or shape_mask(segment('bh5/2')) == 'AN/N'
 
 
-# --- 1. quick win on the real (example tenant) catalog -----------------------------
+# --- 1. early result on the real (example tenant) catalog -----------------------------
 
 def _twin_rows(limit=12000):
     # The full real catalog: a messy mix of clean alpha-prefixed families and
@@ -47,7 +47,7 @@ def test_quick_win_recovers_family_structure_without_parser():
                             description_field='displayName')
     assert isinstance(report, CatalogGrammarReport)
     assert report.total_items == len(rows)
-    # The quick win: induction structurally decodes a large share of a real,
+    # The first result: induction structurally decodes a large share of a real,
     # messy catalog from the strings alone — no hardcoded grammar.
     assert len(report.families) >= 20
     assert report.structured_share > 0.5
@@ -59,7 +59,7 @@ def test_quick_win_recovers_family_structure_without_parser():
     assert ('diameter' in roles or 'length' in roles) and 'finish' in roles
     # Every emitted statement is a proposal, never a confirmed fact.
     assert all(a.status == 'proposed' for a in report.assumptions)
-    # The messy numeric-leading mass is honestly flagged, not silently dropped.
+    # The messy numeric-leading mass is clearly flagged, not silently dropped.
     assert 'convention review' in report.residual_recommendation
 
 

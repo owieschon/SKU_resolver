@@ -7,7 +7,7 @@ on-prem). The harness, discovery, and onboarding code are unchanged — only the
 backend behind the enforcer differs.
 
 Discipline (harness spec §6): a live-tenant run stays GATED behind a green twin
-demonstrate-the-catch matrix. This builder makes the live run trivial to
+fault-injection check matrix. This builder makes the live run trivial to
 launch; it does not lower that bar.
 """
 from __future__ import annotations

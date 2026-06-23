@@ -1,8 +1,8 @@
-"""The rule-release battery's demonstrate-the-catch (dispatch §4.4): a known-bad rule
+"""The rule-release battery's fault-injection check (dispatch §4.4): a known-bad rule
 of EACH failure class is shown to FAIL the component that owns it, and a good rule
 PASSES. An eval that has only ever passed rules is unproven; these reds are the proof
 the battery tests what it claims. The subclass red is built as a DELTA — it passes the
-2-component battery and fails the 3-component — proving 4.3 is load-bearing, not
+2-component battery and fails the 3-component — proving 4.3 is critical, not
 decorative.
 """
 from __future__ import annotations
@@ -81,7 +81,7 @@ def test_subclass_failing_rule_is_caught_ONLY_by_the_subclass_component():
     assert not three.passed                             # 3-component battery: FAILS
     assert not three.subclass.passed                    # ...because of 4.3, and ONLY 4.3
     assert three.held_out.passed and three.no_regression.passed
-    # the delta is the proof 4.3 is load-bearing: same rule, +subclass-check = caught
+    # the delta is the proof 4.3 is critical: same rule, +subclass-check = caught
 
 
 # -- the matcher (the granularity-ladder mechanic) ---------------------------

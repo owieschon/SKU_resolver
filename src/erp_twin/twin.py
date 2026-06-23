@@ -16,7 +16,7 @@ findings, 2026-06-03):
 
 This is deliberately a test double with high behavioral fidelity, not a
 Business Central emulator. The real container twin (erp-replica spec) is the
-later integration target; this twin exists so the demonstrate-the-catch
+later integration target; this twin exists so the fault-injection check
 matrix runs deterministically in CI. Fault injection lives in faults.py.
 """
 from __future__ import annotations

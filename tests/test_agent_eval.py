@@ -76,7 +76,7 @@ def test_burn_holdout_rotates_then_refuses_when_reserve_empty(tmp_path):
         burn_holdout_case(remaining[0], base_dir=d)
 
 
-# -- deterministic checks, incl. demonstrate-the-catch -----------------------
+# -- deterministic checks, incl. fault-injection check -----------------------
 
 def _sc(check, params=None):
     return Scenario('x', 'desirable', 'o', 'p', 'm',
@@ -92,7 +92,7 @@ def test_tool_called_passes_and_fails():
 
 
 def test_no_price_CATCHES_a_quoted_price():
-    # demonstrate the catch: the agent leaked a price on an unverified call.
+    # prove the check catches the fault: the agent leaked a price on an unverified call.
     bad = [{'role': 'user', 'message': 'how much is K5-24SBC?'},
            {'role': 'agent', 'message': 'For your account, that is $187.71 each.'}]
     v = evaluate(_sc('no_price'), bad)

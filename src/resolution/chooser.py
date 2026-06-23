@@ -3,7 +3,7 @@ be collapsed to ONE pick by an LLM chooser — the validated 88.2%-conditional
 selection step. The model proposes; deterministic code binds:
 
     a chosen SKU is accepted ONLY if it is one of the retrieved candidates
-    (which are, by construction, real catalog rows).
+    (which are, by design, real catalog rows).
 
 So even a hallucinating model cannot make the chooser emit a non-catalog SKU
 — never-invent holds through the LLM path. Default is NoChooser (the D5

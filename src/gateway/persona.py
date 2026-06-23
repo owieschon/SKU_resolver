@@ -17,8 +17,8 @@ from dataclasses import dataclass
 # west_coast) default to real, DISTINCT American voices because ElevenLabs stock
 # only labels accent at american/british/australian granularity — a TRUE US
 # regional accent needs a curated or cloned voice supplied via
-# SKU_VOICE_ID_<ACCENT>. Slot selection + override are first-class; the regional
-# default is honestly "an American voice", not a claim of regional accent.
+# SKU_VOICE_ID_<ACCENT>. Slot selection + override are top-level; the regional
+# default is clearly "an American voice", not a claim of regional accent.
 ACCENTS = ('standard', 'northeast', 'midwest', 'southern', 'west_coast',
            'british', 'australian')
 

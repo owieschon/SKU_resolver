@@ -1,4 +1,4 @@
-"""Fault injection for the demonstrate-the-catch matrix.
+"""Fault injection for the fault-injection check matrix.
 
 Each function mutates a BCShapedTwin in place and returns a short
 human-readable description of the planted fault — tests assert the harness

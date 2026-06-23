@@ -11,7 +11,7 @@ The intent classifier is deterministic and rule-based (regime:
 DETERMINISTIC-PLUMBING for routing); it does NOT use an LLM — keeping CI
 deterministic and the routing auditable. An LLM intent layer can replace it
 behind the same interface later (the resolution service is where the model
-already earns its keep).
+already is justified).
 """
 from __future__ import annotations
 

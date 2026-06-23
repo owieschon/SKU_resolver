@@ -10,7 +10,7 @@ the tool returns a verbatim `say` string for the agent to speak.
 
 This module is split so the *build and validation* of the agent definition are
 pure and testable with no network: `build_agent_payload()` assembles the exact
-create/update request, and `validate_system_prompt()` is a demonstrate-the-catch
+create/update request, and `validate_system_prompt()` is a fault-injection check
 check that the non-negotiable guardrail clauses are present. Only the
 `create_or_update_agent()` / `create_pronunciation_dictionary()` calls touch the
 network, and they are key-gated.
@@ -305,7 +305,7 @@ def build_agent_payload(*, persona, tool_base_url: str,
     }
 
 
-# -- demonstrate-the-catch: the prompt must keep its guardrails ---------------
+# -- fault-injection check: the prompt must keep its guardrails ---------------
 
 # Each check is (label, predicate over the lowercased prompt). These are the
 # clauses that make the agent safe to put in front of a customer; a prompt that

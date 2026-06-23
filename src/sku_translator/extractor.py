@@ -24,7 +24,7 @@ Design principles
 3. **Defer to existing parser when input looks like a full SKU.** Why
    reimplement decoding? The extractor hands SKU-shaped tokens to
    `part_number_parser.parse()` and uses the result.
-4. **Ambiguities are first-class output.** The extractor doesn't pick
+4. **Ambiguities are top-level output.** The extractor doesn't pick
    silently — it surfaces every ambiguity it found, with classification
    matching the taxonomy from the disambiguator design.
 

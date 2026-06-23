@@ -13,7 +13,7 @@ harnesses with different jobs, trust models, and failure modes:
 
 They are kept apart because (1) the decoder is source-agnostic and has
 standalone pre-sales value — a prospect can drop a PDF/Excel/web catalog before
-any ERP connection exists; (2) each component's demonstrate-the-catch guards
+any ERP connection exists; (2) each component's fault-injection check guards
 stay sharp when its failure modes aren't entangled with the other's; (3) the
 contract between them is narrow: discovery names the item master + SKU field;
 the decoder consumes rows and emits a grammar report + SME questions.

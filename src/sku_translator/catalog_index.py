@@ -121,11 +121,11 @@ class ParsedRow:
 
     raw_parser_result: dict[str, Any] = field(default_factory=dict)
     """The complete parser result dict, kept for downstream consumers
-    that need fields not promoted to first-class attributes."""
+    that need fields not promoted to top-level attributes."""
 
     raw_erp_row: dict[str, Any] = field(default_factory=dict)
     """The complete raw ERP row, kept for audit and for fields not yet
-    promoted to first-class attributes."""
+    promoted to top-level attributes."""
 
     def matches_field(self, field_name: str, value: Any, *, tolerance: float = 0.001) -> bool:
         """Compare a candidate value against this row's field.

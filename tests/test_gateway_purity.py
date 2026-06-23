@@ -5,7 +5,7 @@
    API but must not compute dates itself.
 2. The gateway pulls no network stack at import (Twilio/AssemblyAI/HTTP are
    loaded only in the live voice adapter / webhook, lazily).
-3. No load-bearing asserts in gateway production code (survive python -O).
+3. No critical asserts in gateway production code (survive python -O).
 """
 from __future__ import annotations
 

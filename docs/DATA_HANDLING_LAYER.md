@@ -41,7 +41,7 @@ The dispatch does NOT need a new regex engine. It needs:
    (retained). Today the guarantee is procedural (scrub_call is called correctly);
    the dispatch wants it structural (the content schema has no slot for identity).
 
-3. **Demonstrate-the-catch** — a test suite proving the scrubber works before real
+3. **Fault-injection check** — a test suite proving the scrubber works before real
    calls go live.
 
 ### Reconciliation decision: EXTEND scrub_text, keep scrub_pii unchanged
@@ -97,7 +97,7 @@ unregistered field is **rejected** (fail-closed), not silently classified.
 
 ## 3. Structural Content Schema
 
-The keystone: identity has nowhere to persist.
+The core: identity has nowhere to persist.
 
 ### Current state
 
@@ -149,7 +149,7 @@ class RetainedContent:
 
 ---
 
-## 4. Demonstrate-the-Catch Plan
+## 4. Fault-injection check Plan
 
 Two phases. Both must pass before any real call is captured.
 
@@ -275,7 +275,7 @@ All six invariants are sound. None challenged.
 | # | Invariant | Status | Notes |
 |---|-----------|--------|-------|
 | 1 | Content store structurally has no identity fields | **Agree** | `RetainedContent` dataclass enforces this. No name/account/phone/company/email field exists in the type. |
-| 2 | Scrubber demonstrate-the-catch proven before real calls | **Agree** | Phase 1 (hard gate) + Phase 2 (reviewed coverage report) + Phase 3 (structural test). |
+| 2 | Scrubber fault-injection check proven before real calls | **Agree** | Phase 1 (hard gate) + Phase 2 (reviewed coverage report) + Phase 3 (structural test). |
 | 3 | filter-on-raw-store-scrubbed ordering | **Agree** | Already implemented in `pilot.shadow.ingest`. `build_retained_content` follows the same discipline: checks run on raw, then scrub, then return only scrubbed. |
 | 4 | Audio dropped by default, retained only for flagged STT errors | **Agree** | `RetainedContent` has no audio field. `AudioRetentionStore` is separate, access-controlled, time-bounded. |
 | 5 | Training on de-identified content, identity link severed | **Agree** | `anon_key()` already severs the tenant/account link. `RetainedContent` carries no identity. The call_id is opaque (no identity derivable from it). |
@@ -293,7 +293,7 @@ All six invariants are sound. None challenged.
 | `src/pilot/content_schema.py` | `RetainedContent` dataclass, `build_retained_content()` constructor |
 | `src/pilot/audio_retention.py` | `AudioRetentionStore` — separate store, reaper, time-bounded |
 | `src/pilot/ingestion.py` | Ingestion pipeline: raw -> checks -> classify -> scrub -> RetainedContent |
-| `tests/test_pii_demonstrate_catch.py` | Phase 1 + Phase 2 + Phase 3 of demonstrate-the-catch |
+| `tests/test_pii_demonstrate_catch.py` | Phase 1 + Phase 2 + Phase 3 of fault-injection check |
 | `tests/test_field_classification.py` | Field classification registry tests |
 | `tests/test_audio_retention.py` | Audio retention store + reaper tests |
 | `tests/test_ingestion_pipeline.py` | End-to-end ingestion pipeline tests |

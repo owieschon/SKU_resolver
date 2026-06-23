@@ -1,5 +1,5 @@
 """P2 LLM seams wired behind deterministic fallbacks, exercised with
-ScriptedProvider (no network). The load-bearing assertion across all three:
+ScriptedProvider (no network). The critical assertion across all three:
 the model only PROPOSES — deterministic code still binds, so never-invent and
 the gates survive even a hallucinating or unavailable model.
 """

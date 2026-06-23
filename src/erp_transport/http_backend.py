@@ -9,7 +9,7 @@ bearer header, JSON parsing, non-2xx pass-through (429/403 reach the enforcer
 as TransportResponses, not exceptions), and timeout -> TransportTimeout are all
 unit-tested against a fake transport. The credential-gated live smoke is the
 only path that touches a real endpoint, and (per the harness spec) live-tenant
-runs are gated behind the twin demonstrate-the-catch matrix.
+runs are gated behind the twin fault-injection check matrix.
 """
 from __future__ import annotations
 

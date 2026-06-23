@@ -478,7 +478,7 @@ def test_garbage_input_unresolvable():
 
 
 def test_translator_never_invents_sku():
-    """Comprehensive: every resolved result MUST reference a real catalog SKU."""
+    """Full: every resolved result MUST reference a real catalog SKU."""
     cat = _get_catalog()
     test_inputs = [
         'K5-24SBC',          # canonical

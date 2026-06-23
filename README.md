@@ -11,7 +11,7 @@ The one rule the whole system is built around:
 > **The engine cannot invent a part number.** Every resolved answer points at a
 > real row in the catalog, and that property is re-checked over the *entire*
 > catalog on every commit. When the input is ambiguous or unknown, the result
-> is an honest `pending` / `unresolvable` — never a plausible-looking fake.
+> is an accurate `pending` / `unresolvable` — never a plausible-looking fake.
 
 ```
 text ─▶ normalize ─▶ extract ─▶ ┌─ verbatim ─┐
@@ -64,7 +64,10 @@ on the layers above it.
 
 **Storage / serving.** The catalog and inventory are flat files
 (`data/catalog.csv`, `data/inventory.json`) read through a `CatalogIndex`
-interface, so the same code accepts a production ERP-backed index unchanged.
+interface, which has three interchangeable backends — the CSV fixture, a
+**SQLite-backed index** (`SqliteCatalogIndex`: schema + indexes, every access
+pattern answered with SQL; proven a drop-in by `tests/test_sqlite_catalog.py`),
+and a production ERP-backed index — so the engine runs unchanged on any of them.
 The runtime is a FastAPI app (`src/runtime/`) exposing the chat/voice endpoints.
 
 [`docs/README.md`](docs/README.md) is the full documentation index.
@@ -120,6 +123,8 @@ print(result.sku, result.source, result.confidence)
 | `src/sku_translator/translator.py` | Orchestrator: one `translate()` entry, confidence-graded resolution paths |
 | `src/sku_translator/extractor.py` · `constructor.py` | tokens → spec → canonical SKU (invertible with the parser) |
 | `src/resolution/` | Unified service: translator-first, BM25 candidate fallback (proposes, never resolves); every response carries state/source/confidence/flags |
+| `src/sku_translator/sqlite_catalog.py` | SQLite-backed `CatalogIndex` (schema + indexes; every access pattern is a SQL query) — drop-in for the CSV fixture |
+| `analytics/catalog_analytics.sql` · `run.py` | Reporting SQL over catalog ⋈ inventory (CTEs, window functions); `python analytics/run.py` |
 | `src/fulfillment/` | Deterministic ship-date engine; every promise names the rule that produced it |
 | `src/erp_harness/` · `src/erp_twin/` | Tenant onboarding: least-privilege discovery → human-gated profile → adapter + drift guard, against an in-repo ERP twin |
 | `src/gateway/` | Chat/voice customer-service gateway: gates, HMAC sessions, PII-scrubbed journal, tool-calling connectors |
@@ -129,6 +134,32 @@ print(result.sku, result.source, result.confidence)
 | `docs/` | Architecture, decision log, specs, runbooks — indexed in `docs/README.md` |
 
 ---
+
+## Analytics (SQL)
+
+The resolution engine never touches a database in the hot path — but the catalog
+joined to inventory is a natural reporting problem, so `analytics/` carries a
+small set of analytical queries (CTEs, window functions, catalog ⋈ inventory
+joins) in [`analytics/catalog_analytics.sql`](analytics/catalog_analytics.sql).
+`python analytics/run.py` loads the data into SQLite and runs them:
+
+```
+== Sales concentration (Pareto by family) ==
+  family   units  pct_of_sales  cumulative_pct
+       K  324700          13.9            13.9
+       A  239998          10.3            24.2
+       S  192492           8.2            32.4
+     ...                                   80.2   ← ~14 families = 80% of volume
+
+== High-velocity stockouts (action list) ==     -- top-decile sellers, qty 0
+            sku  family  sales_count  lead_time_days  velocity_rank
+    ZP3.5-18EXC      ZP          599               5            1.0
+      SS5-18SBS       S          597               8            1.0
+  CSP3.5-42EXS3     CSP          545              28            1.0   ← 28-day lead
+```
+
+The same catalog is also available as a queryable SQLite backend
+(`SqliteCatalogIndex`, see *Architecture*).
 
 ## Data
 
@@ -149,4 +180,4 @@ implemented and tested as described above. The provider integrations (LLM /
 speech-to-text / text-to-speech / Twilio) are wired behind interfaces and have
 live smoke tests, but those tests are **skipped by default** because they
 require real API credentials. [`docs/MATURITY.md`](docs/MATURITY.md) gives the
-honest per-capability map of what is fully tested vs. credential-gated vs. stub.
+accurate per-capability map of what is fully tested vs. credential-gated vs. stub.

@@ -67,7 +67,7 @@ def test_voice_readback_correction(tmp_path):
     assert r2.kind == 'availability' and r2.availability is not None
 
 
-# G-conv-6: out-of-horizon honest refusal (no guessed date)
+# G-conv-6: out-of-horizon accurate refusal (no guessed date)
 def test_out_of_horizon_honest_refusal(tmp_path):
     from datetime import datetime
     from gateway_fixtures import NY
@@ -82,7 +82,7 @@ def test_out_of_horizon_honest_refusal(tmp_path):
     r = gw.turn('S', tok, oos, channel=Channel.TYPED)   # bare SKU, verbatim
     assert r.availability is not None
     assert r.availability.basis == 'beyond_calendar_horizon'
-    assert "can't quote" in r.text.lower()      # honest, not a guessed date
+    assert "can't quote" in r.text.lower()      # accurate, not a guessed date
 
 
 # G-conv-7: anaphora — "the K5 one" resolves against session context

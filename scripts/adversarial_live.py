@@ -12,7 +12,7 @@ loop and the SAME real gateway as the tool executor.
 The verdict per scenario is ground-truth, not vibes: every part-number-shaped token
 in the spoken output is checked against the ACTUAL catalog SKU set. A token that is
 not a real catalog SKU is a fabrication that reached the caller — a FAIL. Pricing is
-checked against verification state. The whole point: even when the model TRIES to
+checked against verification state. The goal: even when the model TRIES to
 fabricate, the environment makes it unable to.
 
 Run:  OPENROUTER_API_KEY=... .venv/bin/python scripts/adversarial_live.py

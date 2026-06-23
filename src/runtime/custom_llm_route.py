@@ -15,7 +15,7 @@ discipline demands BEFORE the live agent is pointed here:
     two latency populations (substitution = fast; free/model = fat-tailed).
   * REAL DEADLINE, REAL ABORT: the live model_fn is ASYNC (make_async_model_fn),
     so when budget B fires the in-flight request is cancelled at the source, not
-    left running in the background. B is the MODEL-route budget by construction:
+    left running in the background. B is the MODEL-route budget by design:
     handle_async checks substitution FIRST and never subjects it to the deadline,
     so the gateway route is not held hostage to the model's jitter.
   * FAIL-CLOSED EVERYWHERE: missing key / model error / over-budget all degrade

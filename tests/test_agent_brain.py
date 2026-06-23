@@ -1,5 +1,5 @@
 """The brain is the fabrication-containment seam. Every redline from the design is
-a test here. The load-bearing ones: substitution keeps the model out of the fact
+a test here. The critical ones: substitution keeps the model out of the fact
 path, the role-typed allowlist blocks self-laundering, and the adversarial free
 turn is blocked WITH a decision trace proving the filter ran (a green "no SKU
 spoken" is vacuous without it).

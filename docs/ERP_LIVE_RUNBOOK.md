@@ -6,7 +6,7 @@ identical — `discover()` / `run_onboarding()` are unchanged; only the transpor
 behind the `SafetyEnforcer` differs (`build_live_enforcer` selects it from env).
 
 ## Precondition (non-negotiable)
-A live-tenant run is **gated behind a green twin demonstrate-the-catch matrix**
+A live-tenant run is **gated behind a green twin fault-injection check matrix**
 (harness spec §6). Don't point at a tenant until the twin suite is green and the
 permissions manifest has been actioned by the customer's IT.
 

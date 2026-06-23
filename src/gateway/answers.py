@@ -58,7 +58,7 @@ def availability(sku: str, *, inventory: dict[str, InventoryRecord],
         res = ship_date(rec, qty, received_at,
                         partial_policy=PartialPolicy.SHIP_COMPLETE)
     except CalendarHorizonError:
-        # Honest refusal rather than a guessed date past the calendar table.
+        # Accurate refusal rather than a guessed date past the calendar table.
         return AvailabilityAnswer(
             sku=sku, in_stock=rec.qty_on_hand > 0,
             quantity_on_hand=rec.qty_on_hand, ship_by_iso='',

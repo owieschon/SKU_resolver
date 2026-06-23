@@ -1,5 +1,5 @@
 """The orchestration-backed `converse()` backend proven in isolation before the
-live `/agent/turn` swap. Reuses the answer builders, so the containment keystone
+live `/agent/turn` swap. Reuses the answer builders, so the containment core
 (`surfaced` provenance) and the authorization gate are preserved; layers the
 durable Conversation state + closure loop + the decision point. The headline proof
 is the STATE-LAUNDERING attack: durable state is server-side and the account
@@ -29,7 +29,7 @@ def _toolcall(text):
         'name': 'resolve_part', 'arguments': json.dumps({'text': text})}}]}
 
 
-# -- provenance + containment keystone preserved -----------------------------
+# -- provenance + containment core preserved -----------------------------
 
 def test_availability_through_converse_is_boolean_and_provenance_intact():
     gw, _, caller, tok = _gw()

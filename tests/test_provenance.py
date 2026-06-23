@@ -1,4 +1,4 @@
-"""Tool provenance is the keystone of fabrication containment: the router decides
+"""Tool provenance is the core of fabrication containment: the router decides
 fact-turn (verbatim say) vs free-turn from surfaced_values, never from prose. So a
 disclosure must NEVER be able to under-report and masquerade as a free turn — and
 incidental numbers (dimensions) must not be mistaken for binding facts.

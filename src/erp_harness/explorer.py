@@ -96,7 +96,7 @@ _MAP_SCHEMA = {
 
 class LLMExplorer:
     """Production proposer: an LLM reads the discovered surface and proposes
-    field mappings — far more robust to messy real-tenant schemas than the
+    field mappings — far more reliable to messy real-tenant schemas than the
     synonym table. It only PROPOSES; C7's verification probes still bind every
     mapping against sampled data, so a wrong LLM proposal is caught and
     preserved as REJECTED, never trusted. Falls back to the heuristic explorer

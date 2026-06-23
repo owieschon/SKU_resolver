@@ -1,6 +1,6 @@
 """Twilio webhook signature validation — fail-open in dev, fail-closed in prod.
 
-Demonstrate-the-catch: we plant a spoofed/tampered request and prove the
+Fault-injection check: we plant a spoofed/tampered request and prove the
 validator rejects it when a token is configured, AND prove a genuine Twilio
 signature passes.
 """

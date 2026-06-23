@@ -1,7 +1,7 @@
 """Deploy guard: make "running code != deployed code" impossible to miss.
 
 Adapted from a prior agent stack's deploy guard (verified). Generalized: repo root
-is a parameter, no daemon/launchd specifics. The load-bearing use here is
+is a parameter, no daemon/launchd specifics. The critical use here is
 verification_preflight() in the credential-gated live-integration smoke
 suites — it refuses to let a "live test passed" claim stand against stale code.
 """

@@ -4,11 +4,11 @@
 synthetic twin — they only reveal themselves against the real thing. This
 document names them, and names the experiment that must pass against real
 infrastructure before the corresponding capability ships to a paying tenant.
-It is the honest boundary of "141/172 tests green": green proves correctness
+It is the accurate boundary of "141/172 tests green": green proves correctness
 against *our model* of the failure modes, not against the field.
 
 Each gate item has: the unknowable, the experiment that closes it, and a
-**demonstrate-the-catch** acceptance criterion (run clean ≠ validated; the
+**fault-injection check** acceptance criterion (run clean ≠ validated; the
 experiment must catch a real fault shape, not just pass).
 
 ---
@@ -19,7 +19,7 @@ The synthetic BC twin (`erp_twin`) implements *documented* BC behavior. The
 real NAV/BC container twin (`erp-replica-research-spec.md`) and, later, a
 live tenant, are where undocumented behavior lives.
 
-| Unknowable | Experiment | Demonstrate-the-catch acceptance |
+| Unknowable | Experiment | Fault-injection check acceptance |
 |---|---|---|
 | Real `$metadata` quirks + scale (hundreds of entities, MB-scale XML) | Run C3 discovery against the container twin's real `$metadata` | Discovery completes within budget AND a hand-injected custom tableextension on the real instance is found and flagged |
 | Sustained-load throttling (real 429 curve, not the modeled one) | C5 throttle probe against the live instance under a measured burst | Probe's measured threshold is within tolerance of the documented 600/min, AND a deliberate over-budget burst is refused by the enforcer, journal-verified |
@@ -34,11 +34,11 @@ code.
 
 ## V2 — Voice gateway against real audio (the call-capture lesson)
 
-The locked call-capture arc (2026-05-02) already proved the load-bearing
+The locked call-capture arc (2026-05-02) already proved the critical
 unknowable: **synthetic transcripts ≠ real ASR output.** `SimulatedASR` will
 pass tests that real AssemblyAI on real customer audio fails.
 
-| Unknowable | Experiment | Demonstrate-the-catch acceptance |
+| Unknowable | Experiment | Fault-injection check acceptance |
 |---|---|---|
 | Real ASR error distribution on real customer speech | Credential-gated live smoke: real call via Twilio → AssemblyAI stream → G3 | A scripted call naming a known SKU is identified-after-readback; a deliberately mis-spoken SKU produces candidates + readback, never a silent wrong ID |
 | Boost-hallucination on real audio (FB-5C→FB-5ZN class) | Replay the H1 confusion-pair audio through the live stream | The wrong SKU is caught by discriminating readback (#11), not accepted |
@@ -51,7 +51,7 @@ caller is the loop.
 
 ## V3 — Pricing & authorization against a real customer DB
 
-| Unknowable | Experiment | Demonstrate-the-catch acceptance |
+| Unknowable | Experiment | Fault-injection check acceptance |
 |---|---|---|
 | Real account-name ambiguity (how often does a name match 2+ accounts?) | Run G2 verification against the real customer DB name distribution | The 0/1/many disambiguation fires correctly on real collisions; a scripted enumeration attack still locks out |
 | Is name-only identity strong enough for this tenant's risk tolerance? | Operator/security review of the entitlement model against real pricing sensitivity | A second factor is added if review demands it; the decision is logged (the spec already flags name-only as weak) |
@@ -82,7 +82,7 @@ without the customer is the HORIZON values — they are conservative placeholder
 until the customer's real data velocity (how fast does stock actually move, how
 often does pricing change) is known.
 
-| Unknowable | Experiment | Demonstrate-the-catch acceptance |
+| Unknowable | Experiment | Fault-injection check acceptance |
 |---|---|---|
 | The real per-fact-type data velocity (availability/lead-time/price horizons) | Tune `HORIZON[fact_type]` against the customer's actual catalog/stock/pricing update cadence | A fact read past its real horizon is re-read before speaking; a planted stale-but-well-formed read is caught by `fresh()` and not spoken |
 | How the customer's catalog signals supersession/freshness (a version? a timestamp? nothing?) | Wire the resolution path to emit a real `as_of` + catalog-version on each resolved fact, mapped from the customer's freshness mechanism | A superseded SKU resolved from a stale index fails `fresh()` (or its precondition) and is not quoted; the catch is a planted supersession |

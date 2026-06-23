@@ -3,7 +3,7 @@ callers. Every dependency faulted at every seam of the turn must fail CLOSED and
 COHERENT: never a hang, never a crash/500, never an incoherent or empty utterance,
 never a fabricated fact. Map: docs/FAULT_INJECTION_PLAN.md. Same adversarial
 discipline as containment, applied to exogenous faults with deterministic correct
-behavior — and demonstrate-the-catch where a real fix is involved (show the
+behavior — and fault-injection check where a real fix is involved (show the
 unwrapped path fails BEFORE asserting the wrapped path holds).
 """
 from __future__ import annotations
@@ -132,7 +132,7 @@ def test_s4_tool_call_without_text_fails_closed():
     ) == SERVICE_FALLBACK
 
 
-# -- S4 the slow tail, FIRST-CLASS: realistic-shaped budget, real abort -------
+# -- S4 the slow tail, Top-level: realistic-shaped budget, real abort -------
 
 def test_s4_slow_tail_over_budget_is_really_aborted_at_a_seconds_scale_budget():
     # the case the deadline EXISTS for and the small latency sample keeps brushing:
@@ -222,7 +222,7 @@ def _coherent_escalation(resp):
 
 
 def test_gateway_resolution_fault_demonstrate_the_catch(monkeypatch):
-    # DEMONSTRATE THE CATCH: the unwrapped dispatch RAISES on a real backend fault;
+    # Prove the check catches the fault: the unwrapped dispatch RAISES on a real backend fault;
     # turn() converts it to a coherent escalation instead of a 500 into ElevenLabs.
     gw, sessions, _, tok = _gw()
 

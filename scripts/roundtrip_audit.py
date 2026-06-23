@@ -18,7 +18,7 @@ from the fixture — never hardcoded):
    'FB-4ZN'; 26 of them truncate to a DIFFERENT REAL catalog SKU). Those
    rows resolve correctly through translate() via the verbatim path (gate 1
    covers them); the pin makes the residual construct-path risk explicit
-   and fails the audit on ANY new entry. An InsufficientSpecError is honest
+   and fails the audit on ANY new entry. An InsufficientSpecError is accurate
    out-of-constructive-scope, not a failure.
 
 3. FULL-ROUND-TRIP COVERAGE (regression floor):
@@ -69,7 +69,7 @@ def main() -> int:
     identity_failures: list[tuple[str, str, str | None]] = []
     silent_rewrites: list[tuple[str, str]] = []
     full_roundtrips = 0
-    out_of_scope = 0  # honest InsufficientSpecError / non-constructive patterns
+    out_of_scope = 0  # accurate InsufficientSpecError / non-constructive patterns
 
     mem = InMemoryStore()
     for sku in skus:
@@ -85,7 +85,7 @@ def main() -> int:
         except InsufficientSpecError:
             out_of_scope += 1
             continue
-        except Exception:  # non-constructive pattern routed honestly
+        except Exception:  # non-constructive pattern routed clearly
             out_of_scope += 1
             continue
         if rebuilt == sku:

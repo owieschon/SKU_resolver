@@ -152,7 +152,7 @@ in the codebase, so the work is HARDEN + WIRE + add the PROPOSER, not build-para
 
 | Piece | Where | What it already does | Gap vs this spec |
 |---|---|---|---|
-| **Loop state machine + propose-not-commit** | `gateway/alias_store.py` (CorrectionStore) | `Alias` = phrase→target_sku ONLY (no fact fields — a poisoned alias has nowhere to put a fake price); `PROPOSED` is inert; `W_HIT=0` (usage≠evidence); `may_promote` requires an exogenous label **AND** `eval_no_regress`; decay/stale/retire/contested; `resolution_mode` (auto_silent strong-tier-gated / auto_confirm / disambiguate) | the eval behind `eval_no_regress` is a single BOOLEAN — no held-out-accuracy gate, no subclass-stratification, no demonstrate-the-catch |
+| **Loop state machine + propose-not-commit** | `gateway/alias_store.py` (CorrectionStore) | `Alias` = phrase→target_sku ONLY (no fact fields — a poisoned alias has nowhere to put a fake price); `PROPOSED` is inert; `W_HIT=0` (usage≠evidence); `may_promote` requires an exogenous label **AND** `eval_no_regress`; decay/stale/retire/contested; `resolution_mode` (auto_silent strong-tier-gated / auto_confirm / disambiguate) | the eval behind `eval_no_regress` is a single BOOLEAN — no held-out-accuracy gate, no subclass-stratification, no fault-injection check |
 | **Held-out ISOLATION discipline (§8)** | `runtime/agent_eval.py` | three-bucket dev/frozen_visible/frozen_holdout/reserve; `verify_frozen` (sha256 hash-lock = the ENFORCED freeze); `burn_holdout_case` (burn-on-inspect + reserve rotation + loud exhaustion); PASS/FAIL/NOT-EXERCISED | content is BEHAVIORAL scenarios, not resolution (phrase→SKU) cases — the resolution battery REUSES the isolation, supplies new content |
 | **Observation + resolution-divergence** | `pilot/shadow.py` (just built) | replay+re-ground, per-stream divergence, catalog-checkable resolution divergence, autonomous-vs-conditional tags | nothing extracts a RULE from a divergence yet |
 | **Live alias SEAM** | `resolution/service.py:182` | `learned_aliases.alias_for(text)` → `RESOLVED source='learned_alias'` | **the seam is UNWIRED (`learned_aliases=None` default); the CorrectionStore is NOT connected to it — grep confirms zero live consumers of alias_store** |
@@ -172,7 +172,7 @@ before `promote()`. Invariant 6 (reversible) is present (`on_contradicting_corre
    §4 three-component verdict (held-out accuracy 4.1 + no-regression 4.2 +
    subclass-stratified 4.3), REUSING `agent_eval`'s frozen/hash-lock isolation for a
    RESOLUTION held-out bucket. `may_promote` consumes the battery verdict, not a bare
-   bool. **Build this FIRST (dispatch §3), prove its demonstrate-the-catch.**
+   bool. **Build this FIRST (dispatch §3), prove its fault-injection check.**
 3. **TRIGGER governor** (§5): min-evidence pre-filter + backoff — maps onto the
    alias's observed-support count + `exogenous_labels`.
 4. **LIVE WIRING + human release**: a CorrectionStore-backed `alias_for(text)`
@@ -182,7 +182,7 @@ before `promote()`. Invariant 6 (reversible) is present (`on_contradicting_corre
 5. **The held-out resolution SET** built from EXOGENOUS ground truth (orders /
    rep-labels), hash-locked — the self-laundering guard (R4).
 
-## R3. Demonstrate-the-catch plan (dispatch §4.4 — the keystone, built FIRST)
+## R3. Fault-injection check plan (dispatch §4.4 — the core, built FIRST)
 
 The battery is unproven until a known-bad rule of each class is shown to FAIL it.
 Three injected-bad-rule tests, each red BEFORE the loop is wired:
@@ -283,7 +283,7 @@ tier — mapping onto `alias_store`'s existing `w_confirm`:
 
 ## X3. THE SHARP CAUTION — a mis-attributed order is a confidently-wrong GOLD label
 
-This is the load-bearing risk and it inverts the usual one. The cross-reference is an
+This is the critical risk and it inverts the usual one. The cross-reference is an
 ATTRIBUTION problem: match a transcript to its order by account + tight timestamp +
 line-item-to-utterance. It can be wrong — a call that produced no order, an order from
 a different channel, a multi-line order whose lines don't cleanly attribute to
@@ -300,7 +300,7 @@ mismatch) are EXCLUDED from the held-out set, or demoted to rep-tier and routed 
 rep-adjudication — never silently trusted as gold. Same pattern as everything else: a
 cross-reference is a CANDIDATE gold label until its attribution clears a confidence
 bar. The eval's ground truth is only as trustworthy as this gate, so this gate gets
-the same demonstrate-the-catch treatment: a deliberately mis-attributed order must be
+the same fault-injection check treatment: a deliberately mis-attributed order must be
 shown to be REJECTED (not admitted as gold).
 
 ## X4. Surfaces this opens
@@ -315,7 +315,7 @@ shown to be REJECTED (not admitted as gold).
   confidence gate exist), wire the real feed when the ERP integration lands. PRODUCTION
   VALIDATION GATE item: real-order attribution accuracy is unknowable until measured
   against a real order feed (the attribution heuristics will misfire in ways the twin
-  won't show) — demonstrate-the-catch on real mis-attribution before gold labels from
+  won't show) — fault-injection check on real mis-attribution before gold labels from
   it are trusted.
 - **Forward-compatibility** — model order/quote records as both INPUT (learning) and
   eventual OUTPUT (the quoting / order-entry agent), so this cross-reference substrate
@@ -326,7 +326,7 @@ shown to be REJECTED (not admitted as gold).
 No invariant changes; this ADDS the strongest exogenous source and the at-scale
 held-out corpus builder, all consistent with `alias_store`'s existing tiers. New work:
 a `cross_reference` layer (transcript × dated order/quote → tiered P→S labels) with
-its own ATTRIBUTION-CONFIDENCE gate + demonstrate-the-catch, feeding extraction +
+its own ATTRIBUTION-CONFIDENCE gate + fault-injection check, feeding extraction +
 held-out + confirm. Built against the ERP twin; gated on real-feed validation.
 
 ---
@@ -337,9 +337,9 @@ held-out + confirm. Built against the ERP twin; gated on real-feed validation.
 
 - **The eval battery** (`learning/eval_battery.py`): the §4 three-component gate
   (held-out accuracy / no-regression / subclass-stratified) as a pure function.
-  Demonstrate-the-catch GREEN (`tests/test_eval_battery.py`): overfit→fails 4.1,
+  Fault-injection check GREEN (`tests/test_eval_battery.py`): overfit→fails 4.1,
   regressing→passes 4.1 fails 4.2, **subclass-failing→DELTA (passes the 2-component
-  battery, fails the 3-component)** proving 4.3 is load-bearing.
+  battery, fails the 3-component)** proving 4.3 is critical.
 - **"Into" `may_promote`** (`alias_store.py`): `eval_no_regress: bool` → battery
   `verdict` (duck-typed `.passed`); ONE gate, the rigorous one. Legacy 15 transition
   tests preserved via `Verdict.injected_pass()/injected_fail()` — VISIBLE FIXTURES,

@@ -1,4 +1,4 @@
-"""The three destinations — quarantined from each other by construction. Each
+"""The three destinations — quarantined from each other by design. Each
 store accepts ONLY its own label type (a wrong-typed label raises), and none of
 them is the commit: they populate CANDIDATE pools from which the gate is later
 built by a separate, curated act. The pilot populates; the eval still commits.

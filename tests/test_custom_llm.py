@@ -1,5 +1,5 @@
 """The mapper is the seam the brain's proofs all assume but none test: everything
-downstream is honest only if the normalized turns are a faithful image of what
+downstream is accurate only if the normalized turns are a faithful image of what
 ElevenLabs sends. These tests exercise exactly what the mock-model brain tests
 can't — role assignment (incl. self-laundering AT the mapping layer), provenance
 round-trip fidelity, and unmappable-payload fail-closed.

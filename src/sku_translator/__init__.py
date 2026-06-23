@@ -73,6 +73,7 @@ from sku_translator.catalog_index import (
     EXCLUDED_PGC_VALUES,
 )
 from sku_translator.fixture_catalog import FixtureCatalogIndex
+from sku_translator.sqlite_catalog import SqliteCatalogIndex
 from sku_translator.erp_catalog import ERPCatalogIndex
 from sku_translator.fuzzy_matcher import (
     FuzzyMatch,
@@ -116,7 +117,7 @@ __all__ = [
     'CatalogIndex', 'ParsedRow', 'family_prefix_for',
     'is_proprietary_marker', 'is_excluded_ipg', 'is_excluded_pgc',
     'PROPRIETARY_SPELLINGS', 'EXCLUDED_IPG_VALUES', 'EXCLUDED_PGC_VALUES',
-    'FixtureCatalogIndex', 'ERPCatalogIndex',
+    'FixtureCatalogIndex', 'SqliteCatalogIndex', 'ERPCatalogIndex',
     # Fuzzy matcher
     'FuzzyMatch', 'fuzzy_match',
     # Disambiguator

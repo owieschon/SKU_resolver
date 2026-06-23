@@ -25,7 +25,7 @@ everything else.
 shippable for unattended ingestion:** the locked record (2026-05-02) blocks
 autonomous voice ingestion on the flag-rule redesign (needs_review F1
 collapsed to 0.15–0.33 at production accuracy). A live conversation
-sidesteps that blocker honestly — **the caller is the human in the loop**.
+sidesteps that blocker clearly — **the caller is the human in the loop**.
 Every voice-identified SKU is read back and confirmed before it is treated
 as identified; the flag's job (catch wrong picks) is replaced by explicit
 per-pick confirmation. This is the rep-solvable 0.64 model with the caller
@@ -41,7 +41,7 @@ as the resolver, not a relaxation of the HITL constitution.
 | **Answers carry provenance** | Availability/lead-time responses embed the ship-date `basis` and `catalog_version`; pricing responses embed the verified `account_id` and a disclosure-log id. |
 | **Plain language out** | Rule bases render per the UI rules: "in stock — ships by 5 PM tomorrow," never `in_stock_next_business_day_1700`. |
 | **Secrets never in the repo** | Twilio and AssemblyAI credentials load from the environment at runtime. They live in out-of-repo `.env` files / the deployment's secret store, never committed. CI never sees them; live-integration tests are a separately-invoked, credential-gated suite. |
-| **Demonstrate the catch** | Every gate and detector is validated against planted faults: injection attempts, enumeration attacks, wrong-SKU confirmations, low-confidence transcripts. |
+| **Prove the check catches the fault** | Every gate and detector is validated against planted faults: injection attempts, enumeration attacks, wrong-SKU confirmations, low-confidence transcripts. |
 
 ## 2.5 Hardening (R3) — addressing the self-audit gaps
 
@@ -181,7 +181,7 @@ normalizer (NATO phonetics, spoken fractions — already built), then
   denied → candidates flow
 - PENDING_DISAMBIGUATION → present up to 3 candidates conversationally
   (0/1/many rule); caller picks or refines
-- UNRESOLVABLE → honest miss + handoff offer; never a guess
+- UNRESOLVABLE → accurate miss + handoff offer; never a guess
 
 **DoD:**
 - [ ] No SKU string reaches a response without a backing `Resolution`
@@ -215,7 +215,7 @@ states one (partial-stock policy renders both dates under SPLIT_SHIP).
       datetime arithmetic on its own)
 - [ ] `basis` and `catalog_version` embedded in the structured response;
       plain-language rendering covered by golden conversations
-- [ ] Out-of-horizon dates surface the engine's refusal honestly ("I can't
+- [ ] Out-of-horizon dates surface the engine's refusal clearly ("I can't
       quote that far out") — never a guessed date
 
 **Smoke:** in-stock / OOS / partial / qty-aware answers render with basis.
@@ -329,7 +329,7 @@ under whose account.
       allowed); pricing attempt unverified (refused + offer); verify by
       number → pricing (disclosed + journaled); verify by ambiguous name
       (disambiguation → confirm → verified); wrong-SKU readback corrected;
-      degraded-transcript candidates; out-of-horizon honest refusal
+      degraded-transcript candidates; out-of-horizon accurate refusal
 - [ ] **Adversarial suite green:** injection corpus cannot move the gate or
       conjure SKUs; enumeration locks out; replayed webhooks are idempotent;
       the inner pricing gate holds with the outer gate removed

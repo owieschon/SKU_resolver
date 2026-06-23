@@ -1,7 +1,7 @@
 """The ElevenLabs agent definition is a safety artifact: a hosted model speaks
 to customers, and the only thing keeping it from inventing a part or a price is
 (1) the gateway tool it must call and (2) the guardrails in its system prompt.
-These tests pin both — and demonstrate the catch: a prompt that loses a
+These tests pin both — and prove the check catches the fault: a prompt that loses a
 guardrail FAILS validation, it does not ship quietly.
 """
 from __future__ import annotations
@@ -26,7 +26,7 @@ def test_prompt_has_all_six_blocks():
         assert block in t
 
 
-# -- demonstrate the catch: drop a guardrail -> validation fails -------------
+# -- prove the check catches the fault: drop a guardrail -> validation fails -------------
 
 def test_removing_never_invent_clause_is_caught():
     prompt = load_system_prompt()

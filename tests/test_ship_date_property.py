@@ -98,7 +98,7 @@ def test_horizon_guard_is_live_not_dormant():
 
 
 def test_holiday_table_is_internally_consistent():
-    # Every holiday is a weekday (observed dates, by construction) and the
+    # Every holiday is a weekday (observed dates, by design) and the
     # table covers both calendar years the engine quotes into.
     for h in HOLIDAYS:
         assert h.weekday() < 5, f'{h} is a weekend day; observed table broken'

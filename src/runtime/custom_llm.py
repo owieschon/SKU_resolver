@@ -4,10 +4,10 @@ ElevenLabs hands us an OpenAI-compatible chat-completions request; we own the
 "LLM." This module maps that request into the NORMALIZED turns the brain
 (`agent_brain.decide_turn`) was proven against, runs the brain, and maps the
 result back. Everything the brain proves is DOWNSTREAM of this mapping being
-faithful, so the mapping is the new load-bearing surface and it is fail-closed:
+faithful, so the mapping is the new critical surface and it is fail-closed:
 
   * ROLE FIDELITY: the brain's role-typed allowlist (tool->tier1, user->tier2,
-    assistant->nothing) is only as honest as the role this mapper assigns. A
+    assistant->nothing) is only as accurate as the role this mapper assigns. A
     mis-assigned role either drops real parts (service failure) or breaches the
     self-laundering boundary at the mapping layer.
   * PROVENANCE ROUND-TRIP: a `tool` message's content is the /agent/turn result

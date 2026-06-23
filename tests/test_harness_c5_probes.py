@@ -49,7 +49,7 @@ def test_e2e_throttle_probe_tracks_twin_reconfiguration():
     t60 = probe_throttle(enforcer60, burst=80)
     assert t60['value'] is not None and 55 <= t60['value'] <= 65
 
-    # And the honest no-measurement outcome when no ceiling exists:
+    # And the accurate no-measurement outcome when no ceiling exists:
     _, _, unthrottled = make_rig(throttle_per_minute=None)
     tn = probe_throttle(unthrottled, burst=20)
     assert tn['value'] is None and 'no 429' in tn['method']

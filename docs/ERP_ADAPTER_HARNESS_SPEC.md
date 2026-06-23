@@ -2,7 +2,7 @@
 
 **Status:** IMPLEMENTED 2026-06-07 (`src/erp_harness/`, `src/erp_twin/`, 41 tests — every detector validated against planted faults). Spec locked 2026-06-07 before code; deviations recorded in docs/DECISION_LOG.md D8–D10.
 **Date:** 2026-06-07
-**Validation target:** the NAV/BC replica twin defined in `erp-replica-research-spec.md` (2026-06-03) — NOT a live tenant ERP. No live-tenant run until the full demonstrate-the-catch matrix passes on the twin.
+**Validation target:** the NAV/BC replica twin defined in `erp-replica-research-spec.md` (2026-06-03) — NOT a live tenant ERP. No live-tenant run until the full fault-injection check matrix passes on the twin.
 **Canonical copies:** prior private work held under NDA and the sku-resolution-engine repo (`docs/`). The repo copy exists because this harness is the live-ERP-sync milestone in that project's path to production.
 
 ---
@@ -22,7 +22,7 @@ The harness is a three-phase agent system that (A) identifies the connection typ
 | **Budgets are code, not judgment** | Rate ceilings, total-call budgets, and backoff live in the only transport the agent can use. The agent cannot exceed them by being clever. |
 | **Every agent claim is verified** | A proposed mapping is hearsay until a deterministic probe confirms it against sampled data. Unverified claims are recorded as `proposed`, never silently accepted. |
 | **Human gate before binding** | The profile ships to a named human reviewer with a diff-style checklist. Sync starts only on explicit approval. Schema drift after onboarding halts sync pending re-approval. |
-| **Demonstrate the catch** | Every detector is validated against *injected* faults on the twin, not by running clean. A detector that has never caught a planted fault is unproven. |
+| **Prove the check catches the fault** | Every detector is validated against *injected* faults on the twin, not by running clean. A detector that has never caught a planted fault is unproven. |
 
 ## 3. Components
 
@@ -65,7 +65,7 @@ Hard ceilings per ERP class (BC default: 50% of the documented 429 threshold), t
 - [ ] Completes within the C2 budget on a twin sized to realistic tenant scale
 
 **Smoke:** run against twin, profile fragment validates against schema, within budget.
-**E2E behavioral (demonstrate-the-catch matrix):** inject K known mutations on the twin — renamed column, added custom field, hidden entity, changed type, dropped FK — harness output names **all K**, each classified correctly. A run that misses any planted mutation fails the component.
+**E2E behavioral (fault-injection check matrix):** inject K known mutations on the twin — renamed column, added custom field, hidden entity, changed type, dropped FK — harness output names **all K**, each classified correctly. A run that misses any planted mutation fails the component.
 
 ### C4 — Item-Master Catalog Decode Module
 
@@ -79,7 +79,7 @@ Two paths, one report:
    generalizing the example catalog decoder's techniques (segmentation, family-by-
    prefix, per-family regex induction, positional role semantics, separator/
    case normalization) rather than its hardcoded patterns. Iterative: round 0
-   is structural induction (the quick win — large coverage, zero human effort);
+   is structural induction (the first result — large coverage, zero human effort);
    later rounds propagate high-confidence clues to same-shape families; the loop
    stops at diminishing returns and hands the residual to manual decodification,
    ranked by SKUs unlocked. Roles (diameter/length/finish/sequence) come from
@@ -103,7 +103,7 @@ untouched.
 - [x] On the example catalog fixture catalog, induction recovers family structure (SB/ZP/L/S/K/… ; ~55% structural coverage) WITHOUT the hardcoded parser
 - [x] Validated on an unseen third-party catalog (World American engine parts PDF, ~1,200 SKUs): WA family discovered, ~66% structural coverage, line-code/sequence segments correctly surfaced as SME questions
 - [x] SME question list is ordered by volume-of-SKUs-resolved and each question names what answering it unlocks
-- [x] Assumptions carry evidence + confidence and are never auto-confirmed; clue propagation and diminishing-returns termination are tested; demonstrate-the-catch on a planted unknown grammar (diameter/finish inferred, opaque segment left as a question)
+- [x] Assumptions carry evidence + confidence and are never auto-confirmed; clue propagation and diminishing-returns termination are tested; fault-injection check on a planted unknown grammar (diameter/finish inferred, opaque segment left as a question)
 
 **Smoke:** 200-row sample → report with all sections present.
 **E2E behavioral:** feed the report's vocabulary output into the translator's alias table for a held-out fixture → previously-unresolvable family-word inputs resolve.
@@ -163,7 +163,7 @@ The harness is done when the **golden path runs end-to-end on the BC twin, in CI
 
 - [ ] **Golden path:** fresh twin → C1 manifest → grants applied → C3–C6 exploration completes within budget → C7 profile with 100% verified-or-gapped contract coverage → human approval recorded → deterministic adapter syncs the items entity into a CatalogIndex-shaped store → **the SKU translator resolves a canonical SKU against the adapter-synced catalog with the identity guarantee intact** → C8 drift injection halts sync
 - [ ] All eight component DoDs green; all smoke + E2E behavioral tests green in one suite
-- [ ] **Demonstrate-the-catch matrix:** every injected fault class (≥1 per detector: missing grant, write attempt, schema mutation ×4, hidden entity, wrong mapping, drift) caught and correctly named — a matrix row that runs clean against a planted fault fails the whole
+- [ ] **Fault-injection check matrix:** every injected fault class (≥1 per detector: missing grant, write attempt, schema mutation ×4, hidden entity, wrong mapping, drift) caught and correctly named — a matrix row that runs clean against a planted fault fails the whole
 - [ ] **Zero writes ever reached the twin during exploration** — verified from the twin's audit log across the entire test history, not from the harness's own journal
 - [ ] Anything experiment-shaped that emerged during the build was pre-registered before running (standing discipline)
 - [ ] Review artifacts: every profile in the test history has a recorded human (or fixture-human) approval; no sync ever started without one

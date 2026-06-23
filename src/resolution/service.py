@@ -6,7 +6,7 @@ The two guarantees this module exists to make checkable from the outside
 
   NEVER-INVENT — a RESOLVED result references a real row in THIS tenant's
   catalog, and every fallback candidate does too. The translator enforces
-  this by construction (round-trip-audited); the retrieval layer by
+  this by design (round-trip-audited); the retrieval layer by
   construction AND by adversarial fuzzing.
 
   TENANT ISOLATION — a service instance is bound at construction to one
@@ -22,7 +22,7 @@ does not contain, and its measured F1 collapsed to 0.15-0.33 at production
 accuracy anyway (locked readout, 2026-05-02; redesign = milestone M2,
 deliberately out of scope). This slice derives needs_review from resolver
 STATE instead: anything other than a high-confidence RESOLVED, or any
-proprietary-policy hit, needs eyes. Crude, honest, and stated here rather
+proprietary-policy hit, needs eyes. Crude, accurate, and stated here rather
 than smoothed over.
 """
 from __future__ import annotations

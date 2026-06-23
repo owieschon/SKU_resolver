@@ -2,7 +2,7 @@
 
 Runs the real onboarding discovery against a live ERP via build_live_enforcer.
 Skipped unless SKU_ERP_KIND + connection env are set. Per the harness spec,
-a live-tenant run is gated behind a green twin demonstrate-the-catch matrix —
+a live-tenant run is gated behind a green twin fault-injection check matrix —
 this is the one-command launcher once that bar is met.
 
     SKU_ERP_KIND=bc SKU_ERP_BASE_URL=... SKU_ERP_TOKEN_URL=... \

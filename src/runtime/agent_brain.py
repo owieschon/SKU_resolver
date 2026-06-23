@@ -29,7 +29,7 @@ Invariants (every one a redline that was argued for):
     anything (a green "no unlisted SKU spoken" is vacuous without proof the filter
     ran and blocked).
 
-Residual, named honestly: a TOKENLESS fact asserted on a NO-TOOL turn (the model
+Residual, named clearly: a TOKENLESS fact asserted on a NO-TOOL turn (the model
 skips the tool and free-forms "those are in stock") is not deterministically
 catchable here — there's no token and no provenance to compare. It's mitigated by
 the prompt rule (call the tool for any part fact) + the probabilistic ElevenLabs

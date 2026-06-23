@@ -1,4 +1,4 @@
-# Maturity & Honesty Map
+# Maturity Map
 
 A straight answer to "what's actually real here?" — written so a reviewer can
 trust the rest of the repo. Every capability is labelled:
@@ -28,7 +28,7 @@ every layer — including voice and onboarding.
 | Catalog grammar induction (unknown tenant) | **PROD** | Learns grammar from strings; assumptions are proposals w/ evidence+confidence; SME questions; iterates to diminishing returns. Validated on a real unseen vendor PDF. |
 | Catalog ingestion: PDF / Excel / web | **PROD (sim default)** | Pure row-extractors tested in CI; PDF reader (pypdf) is the only file-gated piece. |
 | Customer DB / price book | **PROD (sim default)** | In-memory/synthetic in CI; **SQLite adapters fully CI-tested** (stdlib); config selects by env. |
-| ERP adapter harness (recon→discover→verify→profile→drift) | **PROD (sim default)** | Runs against the in-process BC twin in CI with the full demonstrate-the-catch matrix; real ERP via the HTTP backend below. |
+| ERP adapter harness (recon→discover→verify→profile→drift) | **PROD (sim default)** | Runs against the in-process BC twin in CI with the full fault-injection check matrix; real ERP via the HTTP backend below. |
 | ERP HTTPS transport + OAuth (BC SaaS) | **GATED** | `erp_transport.HttpBackend` + `OAuthClientCredentials`. Request building, bearer header, JSON parse, 429/403 pass-through, timeout→TransportTimeout, OAuth caching/refresh all unit-tested with a mocked transport. Live-tenant runs gated behind the twin matrix (spec §6). |
 | Voice — Twilio `<Gather>` bot | **PROD** | Callable end-to-end; Twilio does ASR, the gateway does every decision; signature-validated. |
 | Voice — Streaming STT + TTS (Twilio Media Streams → AssemblyAI v3 → TTS) | **PROD (sim default)** | Full duplex: frame parsing, mu-law codec, Turn parsing, and the TTS reply leg run in CI with `SimulatedTTS`/scripted ASR; live AssemblyAI + ElevenLabs (`ulaw_8000`) drop in by key. |
@@ -50,7 +50,7 @@ every layer — including voice and onboarding.
   `parse_anthropic_response`, `parse_openai_response`, `HttpBackend` against a
   mocked `urlopen`). So "59% on `asr_streaming`" means the socket plumbing is
   live-only, not that the logic is untested.
-- **Demonstrate-the-catch**: detectors are validated against *planted* faults,
+- **Fault-injection check**: detectors are validated against *planted* faults,
   not just clean runs — schema mutations, write attempts, drift, a wrong ERP
   mapping, a planted unknown SKU grammar, spoofed Twilio signatures, malformed
   audio frames, degenerate catalogs.
@@ -75,7 +75,7 @@ to place an actual phone call (and a public URL) for a full voice round-trip.
 ## Known gaps (named, not hidden)
 
 1. **Live-tenant ERP** runs are deliberately gated behind a green twin
-   demonstrate-the-catch matrix; no live run has occurred. The transports
+   fault-injection check matrix; no live run has occurred. The transports
    (BC `HttpBackend`, NAV `SqlBackend`) and the one-command launcher
    (`build_live_enforcer`, `docs/ERP_LIVE_RUNBOOK.md`) are built and
    unit-tested; what's unproven is a real tenant's quirks.

@@ -42,7 +42,7 @@ def test_new_tenant_journey_across_all_layers():
     # the engine-line segment classifies from the fitment/section evidence
     assert any(r.role == 'classifier' for r in wa.segment_roles)
 
-    # 2. RESOLUTION — deterministic, and honest about misses (never-invent).
+    # 2. RESOLUTION — deterministic, and accurate about misses (never-invent).
     cat, ver = _shared_catalog()
     svc = ResolutionService(cat, InMemoryStore(), catalog_version=ver)
     assert svc.resolve(REAL_SKU).state == 'resolved'

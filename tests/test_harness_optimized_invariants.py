@@ -1,4 +1,4 @@
-"""R0 #2: load-bearing invariants must survive `python -O` (asserts stripped).
+"""R0 #2: critical invariants must survive `python -O` (asserts stripped).
 
 Two layers of proof:
   1. A static check that no `assert` statement remains in the harness's

@@ -4,7 +4,7 @@ These seams (AssemblyAI streaming, Anthropic/OpenAI providers) otherwise only
 run under live credentials. Their *parsing* — the part most likely to break on
 a real payload — is extracted into pure functions and tested here against
 synthetic API responses, so a parse regression is caught in CI, not in prod.
-Demonstrate-the-catch: every case includes a malformed/degenerate payload.
+Fault-injection check: every case includes a malformed/degenerate payload.
 """
 from __future__ import annotations
 

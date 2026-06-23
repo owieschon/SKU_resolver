@@ -59,7 +59,7 @@ tier1∪tier2), because that is where this architecture enforces it, not at a ge
 
 ## 3. The breach checker (BUILD FIRST — it is the verifier)
 
-The checker is the keystone, exactly as the eval battery was for the learning loop: an
+The checker is the core, exactly as the eval battery was for the learning loop: an
 unverified verifier is the worst object in the system. Build and **prove it falsifiable
 before generating a single attack.**
 
@@ -78,11 +78,11 @@ runner already extracts): `say`, `surfaced_skus`, `surfaced_values`, `tool_calls
 `session_verified`, the reconstructed `Allowlist`, the parts/identity state, and the
 catalog SKU set. No prose parsing beyond the existing detectors.
 
-### Demonstrate-the-catch (the deliverable, before the generator)
+### Fault-injection check (the deliverable, before the generator)
 
 For EACH of the 8 classes: construct a turn that genuinely commits that breach, and
 confirm `check()` flags exactly that class — **and** that with the breach removed it
-does not. Then the load-bearing red: **neuter the control and confirm the breach gets
+does not. Then the critical red: **neuter the control and confirm the breach gets
 through to a turn the checker flags.** Per class:
 
 - **#1** a `say` containing `HO2503170` (∉ catalog) → `check` flags Fabricated-SKU;
@@ -170,7 +170,7 @@ offending turn captured.
 
 ## 6. Build order (checker first, then generate, then run)
 
-1. **`BreachChecker`** (the 8 predicates) + its demonstrate-the-catch: 8 reds + 8
+1. **`BreachChecker`** (the 8 predicates) + its fault-injection check: 8 reds + 8
    greens + the neuter-the-control demonstrations. **Green before step 2.**
 2. **`generate(family, n, seed)`** — templates + seeded mutations; assert determinism
    (same seed → identical corpus) and family coverage (50 each, none dropped).
@@ -186,7 +186,7 @@ offending turn captured.
 |---|---|
 | `src/adversarial/breach_checker.py` | the 8 predicates + `check(turn) -> BreachVerdict` |
 | `src/adversarial/generator.py` | `generate(family, n, seed)`, templates, mutations |
-| `tests/test_breach_checker.py` | 8 reds + 8 greens + neuter-the-control (the keystone proof) |
+| `tests/test_breach_checker.py` | 8 reds + 8 greens + neuter-the-control (the core proof) |
 | `tests/test_adversarial_generator.py` | determinism + coverage + the scripted run gate (breaches == 0) |
 | `scripts/adversarial_corpus.py` | live run (real model) → the `(attack, verdict)` artifact |
 

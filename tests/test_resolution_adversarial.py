@@ -182,7 +182,7 @@ def test_tenant_b_never_resolves_tenant_a_skus():
 
 def test_memory_does_not_leak_across_tenant_services():
     """Choices recorded under tenant A's service must not influence tenant
-    B's resolutions: services hold separate memory stores by construction,
+    B's resolutions: services hold separate memory stores by design,
     and behavior confirms it."""
     from sku_translator import record_translation_choice
 

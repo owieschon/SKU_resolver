@@ -11,7 +11,7 @@ prove the request really came from Twilio and not a spoofer hitting the public
 
 Posture (matches `using_dev_secret`): if no TWILIO_AUTH_TOKEN is configured we
 are in local/ngrok dev — validation is skipped and `signature_enforced()`
-reports False so the surface can advertise the gap honestly. When the token IS
+reports False so the surface can advertise the gap clearly. When the token IS
 set (production), an invalid/missing signature is rejected. This keeps "go to
 production" = set an env var, not a code change.
 """

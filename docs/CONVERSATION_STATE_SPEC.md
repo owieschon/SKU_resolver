@@ -177,7 +177,7 @@ disclosure  →  anything_else ("anything else I can help with?")
 
 ## 8. Pricing-not-wired interim (and B2C note)
 
-Per-customer pricing is not available yet. Model this honestly, not as a special case:
+Per-customer pricing is not available yet. Model this clearly, not as a special case:
 
 - `price.state = unreadable` (no source). Its precondition can never be satisfied because the fact has no readable source.
 - The agent's correct move on a price request is the **can't-quote handoff** (escalate to rep / quote system), surfaced as a coherent service action.

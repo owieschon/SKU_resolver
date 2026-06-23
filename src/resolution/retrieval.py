@@ -10,7 +10,7 @@ surfaces a ranked human-disambiguation list instead. BM25 carries the
 exact-token recall that made the hybrid work (it is the component that
 recovered K4-12SBA when dense embeddings conflated close SKU variants).
 
-Every candidate is, by construction, a row from the tenant's own catalog —
+Every candidate is, by design, a row from the tenant's own catalog —
 the index is built from catalog rows and returns only what it was built
 from. The adversarial suite verifies this from the outside anyway.
 """

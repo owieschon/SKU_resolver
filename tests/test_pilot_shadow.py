@@ -51,7 +51,7 @@ def test_behavioral_divergence_lands_where_a_human_would():
 
 
 def test_post_behavioral_divergence_resolution_is_CONDITIONAL_not_autonomous():
-    # the load-bearing refinement: T3 resolves the price to the right part, but
+    # the critical refinement: T3 resolves the price to the right part, but
     # AFTER the behavioral divergence -> conditional (capability), not autonomous.
     gw = _gw('/tmp/shadowA2')
     comps, marker = replay_with_regrounding(CALL_A, gw, caller_id='A2')

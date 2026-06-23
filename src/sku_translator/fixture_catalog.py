@@ -7,7 +7,7 @@ fixture exists so:
   - Integration tests can run against a known catalog snapshot without
     needing a live ERP connection.
   - Local development and demos can produce real translations.
-  - The architecture stays honest: any code that accepts a CatalogIndex
+  - The architecture stays accurate: any code that accepts a CatalogIndex
     accepts both the fixture and the production version equivalently.
 
 Loading the fixture

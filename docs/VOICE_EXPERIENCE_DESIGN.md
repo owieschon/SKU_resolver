@@ -107,7 +107,7 @@ gateway build to.
   prompt: confirm "anything else" before closing.
 - **Fixes:** calls that hang open / no graceful end.
 
-## Quality → lever map (at a glance)
+## Quality → lever map ()
 
 | Experience quality | ElevenLabs lever | Gateway lever |
 |---|---|---|
