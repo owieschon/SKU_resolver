@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import logging
 
-from gateway import Channel
 from gateway_fixtures import build_gateway
+
+from gateway import Channel
 
 
 class _RecSpan:
