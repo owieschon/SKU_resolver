@@ -103,7 +103,7 @@ in this repo — clone it and reproduce them yourself.
 | `ship_date()` is total & pure | property sweep over the full catalog × boundary timestamps; AST check that the fulfillment closure imports no LLM/network | `tests/test_ship_date_golden.py`, `tests/test_fulfillment_purity.py` |
 | Pricing stays gated | injection / enumeration / cross-account / weak-confirmation probes | `tests/test_gateway_adversarial.py` |
 
-Current suite (clean `pip install -e ".[dev]"` clone): **579 passing, 10 skipped**
+Current suite (clean `pip install -e ".[dev]"` clone): **585 passing, 10 skipped**
 (the skips are live-API smoke tests that need real provider credentials — see
 *Status* below).
 
