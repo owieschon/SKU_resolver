@@ -1,55 +1,63 @@
 # SKU Resolution Engine
 
-`K4-12SBA` and `K5-12SBA` are one keystroke apart and a different physical part.
-A counter rep won't catch the swap — it looks right on the quote. It gets caught
-on the loading dock, or by the customer, after the wrong part shipped. I built
-this engine because I've watched that happen, and the lesson stuck: when a
-confident wrong answer has a price someone else pays, the model that's *usually
-right* is the wrong tool for the binding decision.
+`K4-12SBA` and `K5-12SBA` are one keystroke apart and a physically different part.
+A counter rep won't catch the swap — it reads fine on the quote, it survives review,
+and it gets caught on the loading dock or by the customer, after the wrong part has
+already shipped. The lesson stuck: when a confident wrong answer has a price someone
+else pays, the model that's *usually right* is the wrong tool for the binding decision.
 
-So here the binding decision is deterministic. A counter rep says *"five inch
-chrome curved stack, twenty-four long"* and the engine answers `K5-24SBC` — or,
-when it can't be sure, it returns an honest `pending` / `unresolvable` instead of
-a plausible fake. A language model is wired in too, but only as a *proposer* at
-the edges; it never authors the part number of record.
+So here the binding decision is deterministic. A rep types or says *"five inch chrome
+curved stack, twenty-four long"* and the engine answers `K5-24SBC` — and when it
+*can't* be sure, it returns an honest `pending` or `unresolvable` instead of a
+plausible fake. A language model is wired in, but only as a *proposer* at the edges:
+it can narrow a retrieved candidate list, it never authors the part number of record.
 
-## The guarantee, and how it's enforced
+## The guarantee, and how it's proven
 
-The engine cannot invent a part number. Every resolved answer points at a real
-catalog row, and I prove that on **every commit** rather than asserting it:
-`scripts/roundtrip_audit.py` derives the catalog size at runtime and enforces a
-**100% identity gate** (every catalog SKU resolves to itself) plus a **≥95%
-round-trip floor** (decode → re-encode rebuilds the same SKU) — and **zero new
-silent rewrites**, so it never quietly turns one real part into another. Any
-breach fails the build.
+**The engine cannot invent a part number.** Every resolved answer points at a real
+catalog row, and that's re-proven over the *whole* catalog on every commit rather than
+asserted. `scripts/roundtrip_audit.py` derives the catalog size at runtime and enforces
+three hard gates:
 
-A companion noise audit (`scripts/noise_resilience_audit.py`) perturbs real SKUs
-with typo / OCR / partial-input damage and confirms **0 inventions** — bad input
-degrades to `pending`, it never resolves to the wrong part. Both run in CI
-alongside `ruff`, `mypy`, and the full test suite.
+- **Identity — 100%, no exceptions.** Every catalog SKU must `translate()` back to
+  exactly itself. Resolution is never allowed to rewrite one real part into another.
+- **No new silent rewrites.** Every SKU that `construct(extract(sku))` rebuilds must
+  rebuild *identically*, against an empty pinned-exception baseline — any new mismatch
+  fails the build, because a silent rewrite is the dangerous case.
+- **Round-trip floor — ≥95%.** The fraction of the catalog that survives
+  decode→re-encode unchanged; a drop signals a grammar or extractor regression.
 
-The two things worth reading first: `src/sku_translator/translator.py` (the
-deterministic core — no LLM, no network import in the resolution path) and
-`scripts/roundtrip_audit.py` (the audit above).
+On the current catalog that's **identity 9,487/9,487, 0 silent rewrites, 96.96%
+round-trip, ~1s**. A companion audit (`scripts/noise_resilience_audit.py`) perturbs
+real SKUs with typo / OCR / partial-input damage — 1,200 noisy inputs — and confirms
+**0 inventions**: bad input degrades to `pending`, it is never resolved into the wrong
+part. Both run in CI beside `ruff`, `mypy`, and the suite.
+
+The two files worth opening first: `src/sku_translator/translator.py` (the deterministic
+core — no LLM, no network in the resolution path) and `scripts/roundtrip_audit.py` (the
+audit above).
 
 ## How it resolves
 
 ```
-text ─▶ normalize ─▶ extract ─▶ ┌ verbatim · grammar · construct ┐
-"5in chrome 24 SB"    (spec)    │ fuzzy · memory · disambiguate   │ ─▶ result
+text ─▶ normalize ─▶ extract ─▶ ┌ verbatim · parser · construct ┐
+"5in chrome 24 SB"    (spec)    │ fuzzy · memory · disambiguate  │ ─▶ result
                                 └────────────────────────────────┘   (sku · state
                                                                        · source
                                                                        · confidence)
 ```
 
 A hand-authored grammar of **312 compiled patterns** decodes a canonical SKU into
-structured fields (family, diameter, length, finish…) and runs in reverse to
-rebuild it — which is what makes the round-trip audit possible. The optional LLM
-chooser is bind-guarded to the retrieved candidate set and defaults to
-`NoChooser` (propose-only), so it can narrow a list but never mint a SKU.
+structured fields — family, diameter, length, finish, angle, legs — and runs *in
+reverse* to rebuild it. That invertibility is what makes the round-trip audit possible:
+the grammar is its own oracle. `translate()` walks the paths in priority order
+(verbatim catalog hit, then parser, construct, fuzzy, memory, disambiguate) and bails to
+`unresolvable` rather than guess. The optional LLM chooser (`src/resolution/chooser.py`)
+is bind-guarded to the retrieved candidate set and defaults to `NoChooser` — propose-only
+— so a hallucinated or empty pick is rejected and never-invent holds *through* the model.
 
-Around that core sit a pure ship-date engine, an ERP-onboarding harness that
-induces an unknown tenant's grammar from its catalog strings, and a chat/voice
+Around that core sit a pure ship-date / fulfillment engine, an ERP-onboarding harness
+that induces an unknown tenant's grammar from its own catalog strings, and a chat/voice
 gateway where pricing stays gated behind account verification. Adversarial and
 tenant-isolation tests cover the seams.
 
@@ -57,7 +65,7 @@ tenant-isolation tests cover the seams.
 
 ```bash
 pip install -e ".[dev]"
-pytest                              # 68 test files, 590 test functions
+pytest                              # 68 test files, 603 tests (593 pass, 10 credential-gated skips)
 python scripts/roundtrip_audit.py   # the never-invent audit, ~1s
 ```
 
@@ -69,24 +77,28 @@ r = translate("5 inch chrome curved 24 long SB", catalog=catalog, memory=InMemor
 print(r.sku, r.source, r.confidence)   # → K5-24SBC construct high
 ```
 
-The catalog (9,986 unique SKUs in `data/catalog.csv`) is
-**synthetic** — generated by enumerating the public grammar
-(`scripts/generate_catalog.py`), so it carries no real company's part numbers,
-descriptions, prices, or customers. This is the public, sanitized version of a
-real system; the grammar was originally hardened against a private NDA catalog
-that isn't included here.
+## Status, honestly
+
+This is the **public, sanitized mirror** of a real system. The catalog
+(`data/catalog.csv`, 9,487 resolvable SKUs) is **synthetic** — generated by enumerating
+the public grammar (`scripts/generate_catalog.py`) and keeping only SKUs that round-trip,
+so it carries no real company's part numbers, descriptions, prices, or customers. The
+grammar itself was originally hardened against a private NDA catalog that isn't included.
+
+The deterministic core, the audits, the ship-date engine, and the resolution seams are
+production-grade and exercised by CI. The provider integrations (LLM, speech-to-text,
+Twilio) sit behind interfaces: their parsing/decision logic is tested with scripted
+implementations, but the live I/O only runs with real credentials and is skipped in CI —
+that's the 10 skips above. `docs/MATURITY.md` is the per-capability map (PROD / GATED /
+STUB), written so a reviewer can trust the rest of the repo.
 
 ## Going deeper
 
-- [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) — why deterministic-core /
-  LLM-as-proposer, and the alternatives weighed
-- [`docs/MATURITY.md`](docs/MATURITY.md) — honest per-capability map: tested vs.
-  credential-gated vs. stub
+- [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) — why deterministic-core / LLM-as-proposer,
+  and the alternatives weighed, locked before the dependent code was written.
+- [`docs/MATURITY.md`](docs/MATURITY.md) — what's real vs. credential-gated vs. stub.
 - [`docs/NOISE_RESILIENCE_AUDIT.md`](docs/NOISE_RESILIENCE_AUDIT.md) ·
   [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md) ·
-  [`docs/README.md`](docs/README.md) (full index)
-
-Provider integrations (LLM / speech-to-text / Twilio) sit behind interfaces with
-live smoke tests that are skipped unless real credentials are present.
+  [`docs/README.md`](docs/README.md) (full index).
 
 License: Apache-2.0 — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
