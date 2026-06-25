@@ -1,5 +1,13 @@
 # Migration Notes — src-layout consolidation (2026-06-06)
 
+> **Historical record.** The catalog was later regenerated from the grammar.
+> Current live state: `data/catalog.csv` holds **9,986 unique SKUs** (of which
+> the audit derives **9,487** active, resolvable SKUs at runtime after excluding
+> obsolete/battery rows), and `data/known_construct_truncations.json` reports
+> **0** pinned truncations (grammar SKUs round-trip by construction). The raw
+> **9,919-row** catalog and the **64-truncation** figures below describe the
+> pre-regeneration catalog and are kept only as a point-in-time migration log.
+
 Source: the originating SKU-parser project (out of repo) (flat
 directory with a `sku_translator -> .` self-symlink to make it importable).
 Every discrepancy between documented and observed state was reconciled at
@@ -18,18 +26,27 @@ package-qualified import (flat-module fallback retained). The bug was present
 since 2026-05-11 and masked by always running from inside the source
 directory.
 
-## 2. Construct-path truncations pinned (64, of which 26 dangerous)
+## 2. Construct-path truncations pinned (pre-regeneration: 64, of which 26 dangerous)
 
-The new round-trip audit (`scripts/roundtrip_audit.py`) surfaced 64 catalog
-SKUs whose `extract -> construct` chain truncates to an embedded base SKU
-(e.g. `'FB-4ZN SADDLE'` constructs as `'FB-4ZN'`). **26 of the 64 truncate to
-a different real catalog SKU** — the dangerous class, since a free-text input
-could assemble to a real-but-wrong part. All 64 resolve correctly through
-`translate()` (the verbatim path matches the full string first; identity gate
-is 9,487/9,487). Pinned in `data/known_construct_truncations.json`; the audit
-fails on any NEW entry. A grammar-level fix (refuse construction when
-unconsumed tokens remain) is deliberately out of scope for this slice — it
-changes free-text resolution behavior and needs its own regression pass.
+> **Superseded by the later catalog regeneration.** The figures in this section
+> describe the pre-regeneration catalog. The current catalog is generated from
+> the grammar and round-trips by construction, so
+> `data/known_construct_truncations.json` now reports **0** pinned truncations.
+> Kept as a point-in-time migration log.
+
+At migration time, the round-trip audit (`scripts/roundtrip_audit.py`) surfaced
+64 catalog SKUs whose `extract -> construct` chain truncated to an embedded base
+SKU (e.g. `'FB-4ZN SADDLE'` constructed as `'FB-4ZN'`). **26 of the 64 truncated
+to a different real catalog SKU** — the dangerous class, since a free-text input
+could assemble to a real-but-wrong part. All 64 still resolved correctly through
+`translate()` (the verbatim path matches the full string first; the identity
+gate covered every active SKU). They were pinned in
+`data/known_construct_truncations.json` so the audit would fail on any NEW
+entry. A grammar-level fix (refuse construction when unconsumed tokens remain)
+was deliberately out of scope for that slice — it changes free-text resolution
+behavior and needs its own regression pass. The subsequent regeneration of the
+catalog from the grammar removed these construct-path cases entirely (pin set
+now empty).
 
 ## 3. Stale documented numbers (corrected)
 

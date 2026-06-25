@@ -12,20 +12,21 @@ from the fixture — never hardcoded):
 
 2. NO NEW SILENT REWRITES (hard gate vs pinned baseline):
    For every SKU where construct(extract(sku)) SUCCEEDS, the rebuilt string
-   must equal the original exactly — EXCEPT for the 64 known truncations
-   pinned at migration in data/known_construct_truncations.json (catalog
-   rows whose SKU embeds another SKU as a prefix, e.g. 'FB-4ZN SADDLE' ->
-   'FB-4ZN'; 26 of them truncate to a DIFFERENT REAL catalog SKU). Those
-   rows resolve correctly through translate() via the verbatim path (gate 1
-   covers them); the pin makes the residual construct-path risk explicit
-   and fails the audit on ANY new entry. An InsufficientSpecError is accurate
-   out-of-constructive-scope, not a failure.
+   must equal the original exactly — EXCEPT for any truncations explicitly
+   pinned in data/known_construct_truncations.json (catalog rows whose SKU
+   embeds another SKU as a prefix, e.g. 'FB-4ZN SADDLE' -> 'FB-4ZN'). The
+   current catalog is regenerated from the grammar, so it round-trips by
+   construction and the pin set is EMPTY (count 0); the pin set is loaded at
+   runtime and the audit fails on ANY new entry. Pinned rows (when present)
+   still resolve correctly through translate() via the verbatim path, which
+   gate 1 covers. An InsufficientSpecError is accurate out-of-constructive-
+   scope, not a failure.
 
 3. FULL-ROUND-TRIP COVERAGE (regression floor):
    Fraction of the catalog that survives extract -> construct -> identical
-   string. Measured baseline at migration (2026-06-06): 9458/9919 = 95.35%.
-   The audit fails if this drops below ROUNDTRIP_COVERAGE_FLOOR — a grammar
-   or extractor regression signal.
+   string. The audit fails if this drops below ROUNDTRIP_COVERAGE_FLOOR — a
+   grammar or extractor regression signal. The coverage and catalog size are
+   derived at runtime and reported each run; no figure is hardcoded here.
 
 Exit code 0 = both gates pass. Nonzero = failure, with per-SKU diagnostics.
 Writes a machine-readable summary to state/roundtrip_audit.json for the
@@ -46,8 +47,9 @@ from sku_translator import RESOLVED, FixtureCatalogIndex, InMemoryStore, transla
 from sku_translator.constructor import InsufficientSpecError, construct_sku
 from sku_translator.extractor import extract_spec
 
-# Measured at migration 2026-06-06: full round-trip = 9458/9919 = 95.35%.
-# Floor set just under baseline; a drop means an extractor/grammar regression.
+# Regression floor for full round-trip coverage. A drop below this means an
+# extractor/grammar regression. The actual coverage is computed at runtime and
+# printed/written each run (see state/roundtrip_audit.json) — never hardcoded.
 ROUNDTRIP_COVERAGE_FLOOR = 0.95
 
 

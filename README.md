@@ -1,219 +1,92 @@
 # SKU Resolution Engine
 
-Turn free-form human input — typed, spoken-then-transcribed, or pasted — into a
-**verified catalog part number**, for an industrial parts catalog of ~9,500
-SKUs. A counter rep hears *"five inch chrome curved stack, twenty-four long"*;
-the engine answers `K5-24SBC` — or, when it isn't sure, it says so instead of
-guessing.
+`K4-12SBA` and `K5-12SBA` are one keystroke apart and a different physical part.
+A counter rep won't catch the swap — it looks right on the quote. It gets caught
+on the loading dock, or by the customer, after the wrong part shipped. I built
+this engine because I've watched that happen, and the lesson stuck: when a
+confident wrong answer has a price someone else pays, the model that's *usually
+right* is the wrong tool for the binding decision.
 
-The one rule the whole system is built around:
+So here the binding decision is deterministic. A counter rep says *"five inch
+chrome curved stack, twenty-four long"* and the engine answers `K5-24SBC` — or,
+when it can't be sure, it returns an honest `pending` / `unresolvable` instead of
+a plausible fake. A language model is wired in too, but only as a *proposer* at
+the edges; it never authors the part number of record.
 
-> **The engine cannot invent a part number.** Every resolved answer points at a
-> real row in the catalog, and that property is re-checked over the *entire*
-> catalog on every commit. When the input is ambiguous or unknown, the result
-> is an accurate `pending` / `unresolvable` — never a plausible-looking fake.
+## The guarantee, and how it's enforced
+
+The engine cannot invent a part number. Every resolved answer points at a real
+catalog row, and I prove that on **every commit** rather than asserting it:
+`scripts/roundtrip_audit.py` derives the catalog size at runtime and enforces a
+**100% identity gate** (every catalog SKU resolves to itself) plus a **≥95%
+round-trip floor** (decode → re-encode rebuilds the same SKU) — and **zero new
+silent rewrites**, so it never quietly turns one real part into another. Any
+breach fails the build.
+
+A companion noise audit (`scripts/noise_resilience_audit.py`) perturbs real SKUs
+with typo / OCR / partial-input damage and confirms **0 inventions** — bad input
+degrades to `pending`, it never resolves to the wrong part. Both run in CI
+alongside `ruff`, `mypy`, and the full test suite.
+
+The two things worth reading first: `src/sku_translator/translator.py` (the
+deterministic core — no LLM, no network import in the resolution path) and
+`scripts/roundtrip_audit.py` (the audit above).
+
+## How it resolves
 
 ```
-text ─▶ normalize ─▶ extract ─▶ ┌─ verbatim ─┐
- "5in chrome          (spec)    │  grammar    │ ─▶ TranslationResult
-  curved 24 SB"                 │  construct  │     (sku · state · source ·
-                                │  fuzzy      │      confidence · flags)
-                                │  memory     │
-                                └─ disambiguate ┘
+text ─▶ normalize ─▶ extract ─▶ ┌ verbatim · grammar · construct ┐
+"5in chrome 24 SB"    (spec)    │ fuzzy · memory · disambiguate   │ ─▶ result
+                                └────────────────────────────────┘   (sku · state
+                                                                       · source
+                                                                       · confidence)
 ```
 
-**Start here.** The deterministic core is the thing worth reviewing:
-`src/sku_translator/translator.py` (the `translate()` entry point and the six
-resolution paths) and `scripts/roundtrip_audit.py` (the never-invent / identity
-guarantee, run over the whole catalog). The onboarding harness, conversational
-gateway, and voice layers are extensions around that core.
+A hand-authored grammar of **312 compiled patterns** decodes a canonical SKU into
+structured fields (family, diameter, length, finish…) and runs in reverse to
+rebuild it — which is what makes the round-trip audit possible. The optional LLM
+chooser is bind-guarded to the retrieved candidate set and defaults to
+`NoChooser` (propose-only), so it can narrow a list but never mint a SKU.
 
----
+Around that core sit a pure ship-date engine, an ERP-onboarding harness that
+induces an unknown tenant's grammar from its catalog strings, and a chat/voice
+gateway where pricing stays gated behind account verification. Adversarial and
+tenant-isolation tests cover the seams.
 
-## Why this exists (the core design decision)
-
-In this domain the worst possible failure is a **wrong-but-plausible** part
-number on a quote or order: `K4-12SBA` and `K5-12SBA` are one keystroke apart
-and a different physical part. A mistake like that survives human review
-*because it looks right*, and it gets caught downstream — on the loading dock,
-or by the customer.
-
-So the binding output is produced by **deterministic rules, not a language
-model**:
-
-- A hand-authored grammar (312 compiled patterns) decodes a canonical SKU into
-  structured fields (family, diameter, length, finish, …), and the same grammar
-  runs in reverse to rebuild it — so resolution is auditable and reproducible.
-- Resolution runs in well under a millisecond per call, with **no network and
-  no LLM in the hot path**.
-- An LLM has a role, but only as a *proposer* in the larger system (suggesting
-  candidates, driving the conversational front-end) — never as the author of the
-  final part number. A model that is usually right is the wrong tool when the
-  cost of a confident error is this high.
-
-See [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) for the decisions, the
-alternatives weighed, and their trade-offs.
-
----
-
-## Architecture
-
-Four layers, each able to run on its own; the deterministic core never depends
-on the layers above it.
-
-| Layer | What it does | Where |
-|---|---|---|
-| **Resolution core** | text → normalize → extract → resolve → result. Six resolution paths, each with a confidence grade. No LLM, no network. | `src/sku_translator/`, `src/resolution/` |
-| **Fulfillment** | A pure, total `ship_date()` from (inventory, qty, order time) to a dated promise, each tagged with the rule that produced it. | `src/fulfillment/` |
-| **Onboarding / catalog induction** | Point it at an *unknown* tenant's catalog and it infers the SKU grammar from the strings alone (segment roles from description co-occurrence), emitting reviewable assumptions and ranked questions for what it can't crack. Plus a least-privilege ERP adapter harness. | `src/erp_harness/`, `src/erp_twin/`, `src/erp_transport/` |
-| **Conversational gateway** | Chat + voice front-end. Availability/lead-time are open; pricing is gated behind account verification; the same gates hold over the phone. | `src/gateway/`, `src/runtime/`, `src/model_provider/` |
-
-**Storage / serving.** The catalog and inventory are flat files
-(`data/catalog.csv`, `data/inventory.json`) read through a `CatalogIndex`
-interface, which has three interchangeable backends — the CSV fixture, a
-**SQLite-backed index** (`SqliteCatalogIndex`: schema + indexes, every access
-pattern answered with SQL; proven a drop-in by `tests/test_sqlite_catalog.py`),
-and a production ERP-backed index — so the engine runs unchanged on any of them.
-The runtime is a FastAPI app (`src/runtime/`) exposing the chat/voice endpoints.
-
-[`docs/README.md`](docs/README.md) is the full documentation index.
-
----
-
-## Verified on every commit
-
-CI runs `ruff` (lint), `mypy` (static types — the resolution core through the
-gateway), the full test suite, and the round-trip + noise-resilience audits on
-every push. These properties are checked against the catalog in this repo —
-clone it and reproduce them yourself.
-
-> **On the numbers.** The catalog here is *generated by enumerating the grammar*
-> (see [Data](#data)), so the round-trip figure is high largely by construction —
-> read it as "the engine and its guarantees run end-to-end on a realistic
-> catalog," not as a benchmark. The grammar's harder validation was on a real
-> ~10k-SKU catalog held privately under NDA; those results aren't reproducible
-> from this repo. Behaviour on *noisy* input is measured separately and does not
-> rely on construction — see [`docs/NOISE_RESILIENCE_AUDIT.md`](docs/NOISE_RESILIENCE_AUDIT.md)
-> (typo / OCR / partial input → **0 inventions**, graceful degradation).
-
-| Property | How it's checked | Result |
-|---|---|---|
-| Every catalog SKU resolves to itself | Identity audit over the full catalog (count derived at runtime) | **9,487 / 9,487** |
-| No silent rewrites | `construct(extract(sku))` vs. a pinned baseline | **0 new** |
-| Grammar invertibility | `construct(extract(sku)) == sku` coverage | **96.96%** (floor 95%) |
-| Never-invent, under attack | seeded mutation fuzz + injection/unicode corpus: no resolved SKU outside the catalog | `tests/test_resolution_adversarial.py` |
-| Tenant isolation | two services, disjoint catalogs, attacked both directions | same file |
-| Never-invent under noise | typo / OCR / partial-spec perturbations of real SKUs, resolved through the live service | **0 inventions**, ~77% graceful degradation — `scripts/noise_resilience_audit.py` |
-| `ship_date()` is total & pure | property sweep over the full catalog × boundary timestamps; AST check that the fulfillment closure imports no LLM/network | `tests/test_ship_date_golden.py`, `tests/test_fulfillment_purity.py` |
-| Pricing stays gated | injection / enumeration / cross-account / weak-confirmation probes | `tests/test_gateway_adversarial.py` |
-
-Current suite (clean `pip install -e ".[dev]"` clone): **593 passing, 10 skipped**
-(the skips are live-API smoke tests that need real provider credentials — see
-*Status* below).
-
----
-
-## Quick start
+## Run it
 
 ```bash
 pip install -e ".[dev]"
-pytest                              # full suite
-python scripts/roundtrip_audit.py  # the never-invent / identity audit, ~1s
+pytest                              # 68 test files, 590 test functions
+python scripts/roundtrip_audit.py   # the never-invent audit, ~1s
 ```
 
 ```python
 from sku_translator import translate, FixtureCatalogIndex, InMemoryStore
 
-catalog = FixtureCatalogIndex('data/catalog.csv', tenant_id='demo')
-result = translate('5 inch chrome curved 24 long SB',
-                   catalog=catalog, memory=InMemoryStore())
-print(result.sku, result.source, result.confidence)
-# → K5-24SBC construct high
+catalog = FixtureCatalogIndex("data/catalog.csv", tenant_id="demo")
+r = translate("5 inch chrome curved 24 long SB", catalog=catalog, memory=InMemoryStore())
+print(r.sku, r.source, r.confidence)   # → K5-24SBC construct high
 ```
 
----
+The catalog (9,986 unique SKUs in `data/catalog.csv`) is
+**synthetic** — generated by enumerating the public grammar
+(`scripts/generate_catalog.py`), so it carries no real company's part numbers,
+descriptions, prices, or customers. This is the public, sanitized version of a
+real system; the grammar was originally hardened against a private NDA catalog
+that isn't included here.
 
-## Repo map
+## Going deeper
 
-| Path | What's there |
-|---|---|
-| `src/sku_translator/part_number_parser/` | The grammar package: 312 compiled patterns + decoders (`_patterns.py`), dispatch + `parse()` (`_dispatch.py`), lookup tables (`tables.py`) |
-| `src/sku_translator/normalizer.py` | Free-text / voice front-end: NATO-phonetic decoding, spoken fractions, units, family vocabulary |
-| `src/sku_translator/translator.py` | Orchestrator: one `translate()` entry, confidence-graded resolution paths |
-| `src/sku_translator/extractor.py` · `constructor.py` | tokens → spec → canonical SKU (invertible with the parser) |
-| `src/resolution/` | Unified service: translator-first, BM25 candidate fallback (proposes, never resolves); every response carries state/source/confidence/flags |
-| `src/sku_translator/sqlite_catalog.py` | SQLite-backed `CatalogIndex` (schema + indexes; every access pattern is a SQL query) — drop-in for the CSV fixture |
-| `analytics/catalog_analytics.sql` · `run.py` | Reporting SQL over catalog ⋈ inventory (CTEs, window functions); `python analytics/run.py` |
-| `src/fulfillment/` | Deterministic ship-date engine; every promise names the rule that produced it |
-| `src/erp_harness/` · `src/erp_twin/` | Tenant onboarding: least-privilege discovery → human-gated profile → adapter + drift guard, against an in-repo ERP twin |
-| `src/gateway/` | Chat/voice customer-service gateway: gates, HMAC sessions, PII-scrubbed journal, tool-calling connectors |
-| `src/runtime/` | FastAPI app: chat API, Twilio voice endpoints, config-selected adapters |
-| `scripts/roundtrip_audit.py` | The whole-catalog never-invent / identity verifier |
-| `scripts/generate_catalog.py` · `generate_inventory.py` | Regenerate the synthetic catalog + inventory (see *Data*) |
-| `docs/` | Architecture, decision log, specs, runbooks — indexed in `docs/README.md` |
+- [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) — why deterministic-core /
+  LLM-as-proposer, and the alternatives weighed
+- [`docs/MATURITY.md`](docs/MATURITY.md) — honest per-capability map: tested vs.
+  credential-gated vs. stub
+- [`docs/NOISE_RESILIENCE_AUDIT.md`](docs/NOISE_RESILIENCE_AUDIT.md) ·
+  [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md) ·
+  [`docs/README.md`](docs/README.md) (full index)
 
----
+Provider integrations (LLM / speech-to-text / Twilio) sit behind interfaces with
+live smoke tests that are skipped unless real credentials are present.
 
-## Analytics (SQL)
-
-The resolution engine never touches a database in the hot path — but the catalog
-joined to inventory is a natural reporting problem, so `analytics/` carries a
-small set of analytical queries (CTEs, window functions, catalog ⋈ inventory
-joins) in [`analytics/catalog_analytics.sql`](analytics/catalog_analytics.sql).
-`python analytics/run.py` loads the data into SQLite and runs them:
-
-```
-== Sales concentration (Pareto by family) ==
-  family   units  pct_of_sales  cumulative_pct
-       K  324700          13.9            13.9
-       A  239998          10.3            24.2
-       S  192492           8.2            32.4
-     ...                                   80.2   ← ~14 families = 80% of volume
-
-== High-velocity stockouts (action list) ==     -- top-decile sellers, qty 0
-            sku  family  sales_count  lead_time_days  velocity_rank
-    ZP3.5-18EXC      ZP          599               5            1.0
-      SS5-18SBS       S          597               8            1.0
-  CSP3.5-42EXS3     CSP          545              28            1.0   ← 28-day lead
-```
-
-The same catalog is also available as a queryable SQLite backend
-(`SqliteCatalogIndex`, see *Architecture*).
-
-## Observability
-
-Off-by-default, fail-open, PII-scrubbed. **Tracing** (OpenTelemetry) emits nested
-spans per request — `gateway.turn → resolve.turn → llm.<task>` — exportable to
-**Phoenix** or any OTLP backend (`SKU_OBS_TRACING=1`); every span attribute
-passes a redaction chokepoint. **Error tracking** is env-gated **Sentry**
-(`SENTRY_DSN`, `send_default_pii=False` + a scrub hook). **Structured logs**
-surface swallowed faults as `gateway.internal_fault` instead of hiding them.
-Plus a **PII-scrubbed transcript journal** and a per-session **cost ledger**.
-There's no LangChain/LangGraph — the engine is deterministic and the LLM is only
-a proposer, so OTel (framework-agnostic) is the right tracer. Details:
-[`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md).
-
-## Data
-
-The catalog in this repo is **synthetic**. It is generated by enumerating the
-public part-number grammar (`scripts/generate_catalog.py`) — valid
-family/diameter/length/finish combinations plus a set of deliberately-opaque
-accessory codes — so it exercises the real engine end-to-end while containing
-**no real company's part numbers, descriptions, prices, customers, or vendor
-data**. Inventory quantities, prices, and sales figures are randomized (seeded,
-so runs are reproducible). The grammar was originally developed against a real
-industrial catalog under NDA; none of that data is included here.
-
-## Status
-
-This is a **work-sample / portfolio** project, not a deployed product. The
-resolution core, fulfillment engine, onboarding harness, and gateway are
-implemented and tested as described above. The provider integrations (LLM /
-speech-to-text / text-to-speech / Twilio) are wired behind interfaces and have
-live smoke tests, but those tests are **skipped by default** because they
-require real API credentials. [`docs/MATURITY.md`](docs/MATURITY.md) gives the
-accurate per-capability map of what is fully tested vs. credential-gated vs. stub.
-
-## License
-
-Apache-2.0 — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
+License: Apache-2.0 — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
